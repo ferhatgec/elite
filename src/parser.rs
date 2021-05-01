@@ -147,6 +147,41 @@ impl EliteParser {
                         continue;
                     }
 
+                    if crate::tokenizer::elite_tokenizer::is_data(&token.as_str()) {
+                        let mut __data   = String::new();
+                        let mut __format = String::new();
+
+                        let mut is_formatter = false;
+
+                        for character in token.chars() {
+                            if is_formatter {
+                                if character == '}' {
+                                    is_formatter = false;
+
+                                    __data.push_str(self.token_get(__format.clone()).as_str());
+
+                                    continue;
+                                }
+
+                                __format.push(character);
+
+                                continue;
+                            }
+
+                            if character == '{' {
+                                is_formatter = true;
+
+                                continue;
+                            }
+
+                            __data.push(character);
+
+                            continue;
+                        }
+
+                        token = __data;
+                    }
+
                     if is_use {
                         if is_use_argument {
                             let token: &String = &ast_helpers::extract_argument(&token);

@@ -28,7 +28,6 @@ pub mod elite_tokenizer {
                 found_data = true;
                 tokenized_data.push(get_data(&temporary_tokens, index));
 
-
                 continue;
             }
 

@@ -1,7 +1,13 @@
-set COMPILER as "gcc"
-set fn       as "for"
+set ProjectName as "Elitebuild"
+
+set COMPILER    as "gcc"
+set fn          as "for"
 set commandline as "argument"
 set echo        as "println"
+set make_arg    as "make"
+
+set Linux       as "linux"
+set FreeBSD     as "freebsd"
 
 \\set arguments as string (
 \\    "example.cpp",
@@ -14,17 +20,16 @@ set echo        as "println"
 
 // Start signal
 $fn signal "start" [
-    $echo "Hello, Elitebuild!"
+    $echo "Hello, {ProjectName}!"
 
-    print "Default compiler is: "
-    $echo $COMPILER
+    println "Default compiler is: {COMPILER}"
 
     // Platform-specific functions.
-    $fn specific "linux"   [
+    $fn specific "{Linux}"   [
         println "Linux-based"
     ]
 
-    for $commandline "make" [
+    for $commandline "{make_arg}" [
         println "There's nothing to do."
     ]
 
@@ -32,8 +37,8 @@ $fn signal "start" [
         println "Hi!"
     ]
 
-    for specific "freebsd" [
-        println "FreeBSD"
+    for specific "{FreeBSD}" [
+        println "{FreeBSD}"
     ]
 
     \\for argument("make") [
@@ -53,11 +58,12 @@ $fn signal "start" [
     \\    ]
     \\]
 
-    for specific "linux"   [ use exec   "echo Hello, Elitebuild from syscall! (for Linux-based)" ]
+    // {...} default formatter
+    for specific "{Linux}"   [ use exec   "echo Hello, Elitebuild from syscall! (for Linux-based)" ]
 
-    for specific "freebsd" [ use exec   "echo Hello, Elitebuild from syscall! (for FreeBSD)" ]
+    for specific "{FreeBSD}" [ use exec   "echo Hello, Elitebuild from syscall! (for FreeBSD)" ]
 
-    for specific "linux"   [ use exec   "uname --a" ]
+    for specific "{Linux}"   [ use exec   "uname --a" ]
 
     for specific "linux"   [ use signal "exit" ]
 ]
