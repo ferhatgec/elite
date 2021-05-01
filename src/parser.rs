@@ -36,7 +36,8 @@ impl EliteParser {
         let mut is_for         = false;
         let mut is_for_argument= false;
 
-        let mut is_print = false;
+        let mut is_print   = false;
+        let mut is_newline = false;
 
         let mut is_use = false;
         let mut is_use_argument = false;
@@ -75,6 +76,12 @@ impl EliteParser {
                 },
                 EliteKeywords::Print => {
                     is_print = true;
+
+                    continue;
+                },
+                EliteKeywords::Println => {
+                    is_print = true;
+                    is_newline = true;
 
                     continue;
                 },
@@ -124,6 +131,12 @@ impl EliteParser {
                         print!("{}", ast_helpers::extract_argument(token));
 
                         is_print = false;
+
+                        if is_newline {
+                            println!();
+
+                            is_newline = false;
+                        }
 
                         continue;
                     }

@@ -13,6 +13,7 @@ pub enum EliteKeywords {
     As,
     For,
     Print,
+    Println,
     Use,
 
     LeftParenthese,
@@ -36,11 +37,12 @@ pub enum EliteASTUseArguments {
 }
 
 pub struct EliteAST {
-    pub ast_set  : String,
-    pub ast_as   : String,
-    pub ast_for  : String,
-    pub ast_print: String,
-    pub ast_use  : String,
+    pub ast_set    : String,
+    pub ast_as     : String,
+    pub ast_for    : String,
+    pub ast_print  : String,
+    pub ast_println: String,
+    pub ast_use    : String,
 
     pub ast_left_parenthese : String,
     pub ast_right_parenthese: String,
@@ -90,11 +92,12 @@ pub mod ast_helpers {
 
 impl EliteAST {
     pub fn init_keywords(&mut self) {
-        self.ast_set   = self.to("set"  );
-        self.ast_as    = self.to("as"   );
-        self.ast_for   = self.to("for"  );
-        self.ast_print = self.to("print");
-        self.ast_use   = self.to("use"  );
+        self.ast_set   = self.to("set"             );
+        self.ast_as    = self.to("as"              );
+        self.ast_for   = self.to("for"             );
+        self.ast_print = self.to("print"           );
+        self.ast_println= format!("{}ln", self.ast_print);
+        self.ast_use   = self.to("use"             );
 
         self.ast_left_parenthese = self.to("(");
         self.ast_right_parenthese= self.to(")");
@@ -119,11 +122,12 @@ impl EliteAST {
             self.to("exit")
         ];
 
-        self.add_token(self.ast_set.clone  (), EliteKeywords::Set  );
-        self.add_token(self.ast_as.clone   (), EliteKeywords::As   );
-        self.add_token(self.ast_for.clone  (), EliteKeywords::For  );
-        self.add_token(self.ast_print.clone(), EliteKeywords::Print);
-        self.add_token(self.ast_use.clone  (), EliteKeywords::Use  );
+        self.add_token(self.ast_set.clone    (), EliteKeywords::Set    );
+        self.add_token(self.ast_as.clone     (), EliteKeywords::As     );
+        self.add_token(self.ast_for.clone    (), EliteKeywords::For    );
+        self.add_token(self.ast_print.clone  (), EliteKeywords::Print  );
+        self.add_token(self.ast_println.clone(), EliteKeywords::Println);
+        self.add_token(self.ast_use.clone    (), EliteKeywords::Use    );
 
         self.add_token(self.ast_left_parenthese.clone(), EliteKeywords::LeftParenthese);
         self.add_token(self.ast_right_parenthese.clone(), EliteKeywords::RightParenthese);

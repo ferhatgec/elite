@@ -10,7 +10,7 @@ set COMPILER as "gcc"
 \\)
 
 for signal "start" [
-    print "Hello, Elitebuild!"
+    println "Hello, Elitebuild!"
 
     \\for argument("make") [
     \\    for specific("linux") [
@@ -29,9 +29,9 @@ for signal "start" [
     \\    ]
     \\]
 
-    use exec "echo Hello, Elitebuild from syscall!"
+    use exec   "echo Hello, Elitebuild from syscall!"
 
-    use exec "uname --a"
+    use exec   "uname --a"
 
     use signal "exit"
 ]

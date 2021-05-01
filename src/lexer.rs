@@ -16,6 +16,7 @@ pub mod elite_lexer {
             ast_as                     : "".to_string(),
             ast_for                    : "".to_string(),
             ast_print                  : "".to_string(),
+            ast_println                : "".to_string(),
 
             ast_use                    : "".to_string(),
             ast_left_parenthese        : "".to_string(),
