@@ -9,8 +9,18 @@ set COMPILER as "gcc"
 \\    f("curl")
 \\)
 
+// Start signal
 for signal "start" [
     println "Hello, Elitebuild!"
+
+    // Platform-specific functions.
+    for specific "linux"   [
+        println "Linux-based"
+    ]
+
+    for specific "freebsd" [
+        println "FreeBSD"
+    ]
 
     \\for argument("make") [
     \\    for specific("linux") [
@@ -29,9 +39,11 @@ for signal "start" [
     \\    ]
     \\]
 
-    use exec   "echo Hello, Elitebuild from syscall!"
+    for specific "linux"   [ use exec   "echo Hello, Elitebuild from syscall! (for Linux-based)" ]
 
-    use exec   "uname --a"
+    for specific "freebsd" [ use exec   "echo Hello, Elitebuild from syscall! (for FreeBSD)" ]
 
-    use signal "exit"
+    for specific "linux"   [ use exec   "uname --a" ]
+
+    for specific "linux"   [ use signal "exit" ]
 ]

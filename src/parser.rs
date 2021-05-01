@@ -6,10 +6,12 @@
 //
 
 use {
-    std::env::var,
-
     crate::ast::{
         EliteKeywords,
+
+        EliteASTForFunctions,
+        EliteASTForSpecificTargets,
+
         EliteASTUseArguments,
         EliteASTUseFunctions,
 
@@ -28,7 +30,8 @@ pub struct EliteParser {
 
 impl EliteParser {
     pub fn parse_tokens(&mut self, tokens: &Vec<String>) {
-        let mut __matched_type: EliteKeywords = EliteKeywords::Undefined;
+        let mut __matched_type = EliteKeywords::Undefined;
+        let mut last_matched_function = EliteASTForFunctions::Undefined;
 
         let mut is_variable = false;
         let mut is_data     = false;
@@ -44,10 +47,15 @@ impl EliteParser {
 
         let mut is_data_initializer = false;
 
+        let mut is_function = false;
+        let mut is_main_os  = true;
+
+        let mut count_end_of_function: u32 = 0;
+
         let mut variable_name = String::new();
         let mut variable_data = String::new();
 
-        for mut token in tokens {
+        for token in tokens {
             if token.is_empty() { continue; }
 
             let token = &self.init_ast.to(token.trim());
@@ -92,10 +100,29 @@ impl EliteParser {
                 },
                 // Ignoring them.
                 EliteKeywords::LeftParenthese |
-                EliteKeywords::RightParenthese|
-                EliteKeywords::LeftSqBracket  |
-                EliteKeywords::RightSqBracket  => {},
+                EliteKeywords::RightParenthese => {},
+                EliteKeywords::LeftSqBracket   => {
+                    if is_main_os {
+                        count_end_of_function += 1;
+                    }
+
+                    continue;
+                },
+                EliteKeywords::RightSqBracket  => {
+                    if is_main_os  {
+                        count_end_of_function -= 1;
+                    }
+
+                    if count_end_of_function == 0 {
+                        is_main_os = false;
+                        is_function = false;
+                    }
+
+                    continue;
+                },
                 _ => {
+                    if !is_main_os {continue;}
+
                     if is_use {
                         if is_use_argument {
                             let token: &String = &ast_helpers::extract_argument(token);
@@ -108,7 +135,8 @@ impl EliteParser {
 
                             if token.is_empty() { continue; }
 
-                            self.ast_parse_use_function(variable_data.clone(), token.clone());
+                            self.ast_parse_use_function(variable_data.clone(),
+                                                        ast_helpers::extract_argument(token));
 
                             is_use = false;
                             is_use_argument = false;
@@ -146,24 +174,28 @@ impl EliteParser {
                         if is_for_argument {
                             let token = &(ast_helpers::extract_argument(token));
 
-                            for argument in &self.init_ast.ast_for_functions_arguments {
-                                if argument == token {
-                                    // TODO: Signal parser.
-                                    break;
-                                }
+                            if last_matched_function == EliteASTForFunctions::Specific {
+                                is_main_os = self.ast_parse_for_functions(variable_name.clone(),
+                                                                          ast_helpers::extract_argument(token));
+                            }
+                            else {
+                                self.ast_parse_for_functions(variable_name.clone(),
+                                                             ast_helpers::extract_argument(token));
                             }
 
                             is_for = false;
                             is_for_argument = false;
 
+                            variable_name.clear();
+
                             continue;
                         }
 
-                        for function in &self.init_ast.ast_for_functions {
-                            if function == token {
-                                is_for_argument = true;
-                                break;
-                            }
+                        if self.init_ast.match_for_functions(token) != &EliteASTForFunctions::Undefined {
+                            is_for_argument = true;
+                            last_matched_function = *self.init_ast.match_for_functions(token);
+
+                            variable_name   = token.clone();
                         }
 
                         continue;
@@ -190,7 +222,66 @@ impl EliteParser {
         }
     }
 
-    pub fn ast_parse_use_function(&mut self, function: String, mut argument: String) {
+    pub fn ast_parse_for_functions(&mut self, function: String, argument: String) -> bool {
+        match self.init_ast.match_for_functions(&function) {
+            EliteASTForFunctions::Signal => {
+                // TODO: Signal parser.
+                false
+            },
+            EliteASTForFunctions::Specific => {
+                self.ast_parse_for_specific_target(argument)
+            },
+            _ => {
+                // Syntax error (undefined function)
+                false
+            }
+        }
+    }
+
+    pub fn ast_parse_for_specific_target(&mut self, target: String) -> bool {
+        match self.init_ast.match_for_specific_targets(&target) {
+            // EliteASTForSpecificTargets::Windows => {
+            //
+            // },
+            // EliteASTForSpecificTargets::macOS => {
+            //
+            // },
+            // EliteASTForSpecificTargets::iOS => {
+            //
+            // },
+            // EliteASTForSpecificTargets::Linux => {
+            //
+            // },
+            // EliteASTForSpecificTargets::Android => {
+            //
+            // },
+            // EliteASTForSpecificTargets::FreeBSD => {
+            //
+            // },
+            // EliteASTForSpecificTargets::DragonFly => {
+            //
+            // },
+            // EliteASTForSpecificTargets::Bitrig => {
+            //
+            // },
+            // EliteASTForSpecificTargets ::OpenBSD => {
+            //
+            // },
+            // EliteASTForSpecificTargets::NetBSD => {
+            //
+            // },
+            EliteASTForSpecificTargets::Undefined => {
+                false
+            },
+            _ => {
+                return self.is_same(&target);
+
+                // println!("Undefined target {}", &target);
+            }
+        }
+    }
+
+    pub fn ast_parse_use_function(&mut self, function: String, argument: String) {
         match self.init_ast.match_use_functions(&function) {
             EliteASTUseFunctions::Signal => {
                 self.ast_parse_use(argument);
@@ -249,5 +340,11 @@ impl EliteParser {
                     __data: data
                 }
         );
+    }
+
+    pub fn is_same(&self, target: &String) -> bool {
+        return if std::env::consts::OS == target {
+            true
+        } else { false };
     }
 }

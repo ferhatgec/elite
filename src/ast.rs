@@ -25,6 +25,28 @@ pub enum EliteKeywords {
     Undefined
 }
 
+#[derive(PartialEq, Clone, Copy)]
+pub enum EliteASTForFunctions {
+    Signal,
+    Specific,
+    Undefined
+}
+
+#[allow(non_camel_case_types)]
+pub enum EliteASTForSpecificTargets {
+    Windows,
+    macOS,
+    iOS,
+    Linux,
+    Android,
+    FreeBSD,
+    DragonFly,
+    Bitrig,
+    OpenBSD,
+    NetBSD,
+    Undefined
+}
+
 pub enum EliteASTUseFunctions {
     Signal,
     Exec,
@@ -37,29 +59,30 @@ pub enum EliteASTUseArguments {
 }
 
 pub struct EliteAST {
-    pub ast_set    : String,
-    pub ast_as     : String,
-    pub ast_for    : String,
-    pub ast_print  : String,
-    pub ast_println: String,
-    pub ast_use    : String,
+    pub ast_set                    : String,
+    pub ast_as                     : String,
+    pub ast_for                    : String,
+    pub ast_print                  : String,
+    pub ast_println                : String,
+    pub ast_use                    : String,
 
-    pub ast_left_parenthese : String,
-    pub ast_right_parenthese: String,
+    pub ast_left_parenthese        : String,
+    pub ast_right_parenthese       : String,
 
-    pub ast_square_left_bracket  : String,
-    pub ast_square_right_bracket : String,
+    pub ast_square_left_bracket    : String,
+    pub ast_square_right_bracket   : String,
 
-    pub ast_for_functions: Vec<String>,
-    pub ast_for_use      : Vec<String>,
+    pub ast_for_use                : Vec<String>,
 
     pub ast_for_functions_arguments: Vec<String>,
     pub ast_for_use_arguments      : Vec<String>,
 
-    pub syntax_list: HashMap<String, EliteKeywords>,
+    pub syntax_list                : HashMap<String, EliteKeywords>,
 
-    pub ast_use_functions: HashMap<String, EliteASTUseFunctions>,
-    pub ast_use_list:HashMap<String, EliteASTUseArguments>
+    pub ast_for_functions          : HashMap<String, EliteASTForFunctions>,
+    pub ast_for_specific_targets   : HashMap<String, EliteASTForSpecificTargets>,
+    pub ast_use_functions          : HashMap<String, EliteASTUseFunctions>,
+    pub ast_use_list               : HashMap<String, EliteASTUseArguments>
 }
 
 pub struct EliteDataInfos {
@@ -74,19 +97,36 @@ pub struct EliteDataTree {
 
 pub mod ast_helpers {
     pub fn extract_argument(argument: &String) -> String {
-        let mut argument = String::from(argument);
+        if !argument.starts_with('"') && !argument.ends_with('"') {
+            let mut __argument = String::new();
 
-        if argument.chars().nth(0).unwrap() == '"' {
-            argument.remove(0);
+            for character in argument.chars() {
+                if character != '"' {
+                    __argument.push(character);
+
+                    continue;
+                }
+
+                break;
+            }
+
+            return __argument;
         }
+        else {
+            let mut argument = String::from(argument);
 
-        argument = argument.split('\n').collect::<Vec<_>>().get(0).unwrap().to_string();
+            if argument.chars().nth(0).unwrap() == '"' {
+                argument.remove(0);
+            }
 
-        if argument.ends_with('"') {
-            argument.remove(argument.len() - 1);
+            argument = argument.split('\n').collect::<Vec<_>>().get(0).unwrap().to_string();
+
+            if argument.ends_with('"') {
+                argument.remove(argument.len() - 1);
+            }
+
+            argument
         }
-
-        argument
     }
 }
 
@@ -105,9 +145,6 @@ impl EliteAST {
         self.ast_square_left_bracket = self.to("[");
         self.ast_square_right_bracket= self.to("]");
 
-        self.ast_for_functions = vec![
-            self.to("signal")
-        ];
 
         self.ast_for_functions_arguments = vec![
             self.to("start")
@@ -135,6 +172,20 @@ impl EliteAST {
         self.add_token(self.ast_square_left_bracket.clone(), EliteKeywords::LeftSqBracket);
         self.add_token(self.ast_square_right_bracket.clone(), EliteKeywords::RightSqBracket);
 
+        self.add_for_function(self.to("signal"), EliteASTForFunctions::Signal);
+        self.add_for_function(self.to("specific"), EliteASTForFunctions::Specific);
+
+        self.add_for_specific_target(self.to("windows"), EliteASTForSpecificTargets::Windows);
+        self.add_for_specific_target(self.to("macos"), EliteASTForSpecificTargets::macOS);
+        self.add_for_specific_target(self.to("ios"), EliteASTForSpecificTargets::iOS);
+        self.add_for_specific_target(self.to("linux"), EliteASTForSpecificTargets::Linux);
+        self.add_for_specific_target(self.to("android"), EliteASTForSpecificTargets::Android);
+        self.add_for_specific_target(self.to("freebsd"), EliteASTForSpecificTargets::FreeBSD);
+        self.add_for_specific_target(self.to("dragonfly"), EliteASTForSpecificTargets::DragonFly);
+        self.add_for_specific_target(self.to("bitrig"), EliteASTForSpecificTargets::Bitrig);
+        self.add_for_specific_target(self.to("openbsd"), EliteASTForSpecificTargets::OpenBSD);
+        self.add_for_specific_target(self.to("netbsd"), EliteASTForSpecificTargets::NetBSD);
+
         self.add_use_function(self.to("signal"), EliteASTUseFunctions::Signal);
         self.add_use_function(self.to("exec"  ), EliteASTUseFunctions::Exec  );
 
@@ -143,6 +194,14 @@ impl EliteAST {
 
     fn add_token(&mut self, token: String, token_type: EliteKeywords) {
         self.syntax_list.insert(token, token_type);
+    }
+
+    fn add_for_function(&mut self, function: String, token_type: EliteASTForFunctions) {
+        self.ast_for_functions.insert(function, token_type);
+    }
+
+    fn add_for_specific_target(&mut self, function: String, token_type: EliteASTForSpecificTargets) {
+        self.ast_for_specific_targets.insert(function, token_type);
     }
 
     fn add_use_function(&mut self, function: String, token_type: EliteASTUseFunctions) {
@@ -155,6 +214,22 @@ impl EliteAST {
 
     pub fn to(&self, data: &str) -> String {
         data.to_string()
+    }
+
+    pub fn match_for_functions(&mut self, function: &String) -> &EliteASTForFunctions {
+        let function = self.ast_for_functions.get(function);
+
+        if function.is_none() { return &EliteASTForFunctions::Undefined; }
+
+        function.unwrap()
+    }
+
+    pub fn match_for_specific_targets(&mut self, target: &String) -> &EliteASTForSpecificTargets {
+        let target = self.ast_for_specific_targets.get(target);
+
+        if target.is_none() { return &EliteASTForSpecificTargets::Undefined; }
+
+        target.unwrap()
     }
 
     pub fn match_use_functions(&mut self, function: &String) -> &EliteASTUseFunctions {

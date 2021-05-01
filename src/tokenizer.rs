@@ -21,7 +21,7 @@ pub mod elite_tokenizer {
 
         let mut found_data = false;
 
-        for (mut index, token) in temporary_tokens.iter().enumerate() {
+        for (index, token) in temporary_tokens.iter().enumerate() {
             if is_data(&token) {
                 found_data = true;
                 tokenized_data.push(get_data(&temporary_tokens, index));
@@ -30,8 +30,8 @@ pub mod elite_tokenizer {
                 continue;
             }
 
-            let mut token: String = String::from(replace_for_tokenize(&token.to_string()));
-            let mut x: Vec<_> = token.split(' ').collect::<Vec<&str>>();
+            let token: String = String::from(replace_for_tokenize(&token.to_string()));
+            let x: Vec<_> = token.split(' ').collect::<Vec<&str>>();
 
             for operators in x {
                 variable_data.push_str(operators);
