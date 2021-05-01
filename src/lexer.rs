@@ -17,6 +17,7 @@ pub mod elite_lexer {
             ast_for                    : "".to_string(),
             ast_print                  : "".to_string(),
 
+            ast_use                    : "".to_string(),
             ast_left_parenthese        : "".to_string(),
             ast_right_parenthese       : "".to_string(),
 
@@ -24,9 +25,13 @@ pub mod elite_lexer {
             ast_square_right_bracket   : "".to_string(),
 
             ast_for_functions          : vec![],
-            ast_for_functions_arguments: vec![],
+            ast_for_use                : vec![],
 
-            syntax_list                : Default::default()
+            ast_for_functions_arguments: vec![],
+            ast_for_use_arguments: vec![],
+
+            syntax_list                : Default::default(),
+            ast_use_list: Default::default()
         };
 
         init_ast.init_keywords();

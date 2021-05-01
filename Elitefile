@@ -29,5 +29,5 @@ for signal("start") [
     \\    ]
     \\]
 
-    \\use signal("exit")
+    use signal("exit")
 ]

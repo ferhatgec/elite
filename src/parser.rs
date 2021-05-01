@@ -10,6 +10,7 @@ use {
 
     crate::ast::{
         EliteKeywords,
+        EliteASTUseArguments,
 
         EliteAST,
         EliteDataTree,
@@ -33,6 +34,9 @@ impl EliteParser {
         let mut is_for_argument= false;
 
         let mut is_print = false;
+
+        let mut is_use = false;
+        let mut is_use_argument = false;
 
         let mut is_data_initializer = false;
 
@@ -71,12 +75,39 @@ impl EliteParser {
 
                     continue;
                 },
+                EliteKeywords::Use => {
+                    is_use = true;
+
+                    continue;
+                },
                 // Ignoring them.
                 EliteKeywords::LeftParenthese |
                 EliteKeywords::RightParenthese|
                 EliteKeywords::LeftSqBracket  |
                 EliteKeywords::RightSqBracket  => {},
                 _ => {
+                    if is_use {
+                        if is_use_argument {
+                            let token: &String = &self.init_ast.extract_argument(token);
+
+                            for argument in &self.init_ast.ast_for_use_arguments.clone() {
+                                if argument == token {
+                                    self.ast_parse_use(token.to_string());
+                                }
+                            }
+
+                            continue;
+                        }
+
+                        for function in &self.init_ast.ast_for_use {
+                            if function == token {
+                                is_use_argument = true;
+
+                                continue;
+                            }
+                        }
+                    }
+
                     // Built-in regular print function.
                     if is_print {
                         print!("{}", self.init_ast.extract_argument(token));
@@ -130,6 +161,17 @@ impl EliteParser {
                         continue;
                     }
                 }
+            }
+        }
+    }
+
+    pub fn ast_parse_use(&mut self, argument: String) {
+        match self.init_ast.match_use_arguments(&argument) {
+            EliteASTUseArguments::Exit => {
+                std::process::exit(0);
+            },
+            _ => {
+                // Syntax error (undefined argument)
             }
         }
     }
