@@ -24,6 +24,12 @@ pub enum EliteKeywords {
     Undefined
 }
 
+pub enum EliteASTUseFunctions {
+    Signal,
+    Exec,
+    Undefined
+}
+
 pub enum EliteASTUseArguments {
     Exit,
     Undefined
@@ -49,6 +55,8 @@ pub struct EliteAST {
     pub ast_for_use_arguments      : Vec<String>,
 
     pub syntax_list: HashMap<String, EliteKeywords>,
+
+    pub ast_use_functions: HashMap<String, EliteASTUseFunctions>,
     pub ast_use_list:HashMap<String, EliteASTUseArguments>
 }
 
@@ -60,6 +68,24 @@ pub struct EliteDataInfos {
 
 pub struct EliteDataTree {
     pub variable_list: Vec<EliteDataInfos>
+}
+
+pub mod ast_helpers {
+    pub fn extract_argument(argument: &String) -> String {
+        let mut argument = String::from(argument);
+
+        if argument.chars().nth(0).unwrap() == '"' {
+            argument.remove(0);
+        }
+
+        argument = argument.split('\n').collect::<Vec<_>>().get(0).unwrap().to_string();
+
+        if argument.ends_with('"') {
+            argument.remove(argument.len() - 1);
+        }
+
+        argument
+    }
 }
 
 impl EliteAST {
@@ -84,7 +110,10 @@ impl EliteAST {
             self.to("start")
         ];
 
-        self.ast_for_use = self.ast_for_functions.clone();
+        self.ast_for_use = vec![
+            self.to("signal"),
+            self.to("exec")
+        ];
 
         self.ast_for_use_arguments = vec![
             self.to("exit")
@@ -102,11 +131,18 @@ impl EliteAST {
         self.add_token(self.ast_square_left_bracket.clone(), EliteKeywords::LeftSqBracket);
         self.add_token(self.ast_square_right_bracket.clone(), EliteKeywords::RightSqBracket);
 
+        self.add_use_function(self.to("signal"), EliteASTUseFunctions::Signal);
+        self.add_use_function(self.to("exec"  ), EliteASTUseFunctions::Exec  );
+
         self.add_use_argument(self.to("exit"), EliteASTUseArguments::Exit);
     }
 
     fn add_token(&mut self, token: String, token_type: EliteKeywords) {
         self.syntax_list.insert(token, token_type);
+    }
+
+    fn add_use_function(&mut self, function: String, token_type: EliteASTUseFunctions) {
+        self.ast_use_functions.insert(function, token_type);
     }
 
     fn add_use_argument(&mut self, argument: String, token_type: EliteASTUseArguments) {
@@ -115,6 +151,14 @@ impl EliteAST {
 
     pub fn to(&self, data: &str) -> String {
         data.to_string()
+    }
+
+    pub fn match_use_functions(&mut self, function: &String) -> &EliteASTUseFunctions {
+        let function = self.ast_use_functions.get(function);
+
+        if function.is_none() { return &EliteASTUseFunctions::Undefined; }
+
+        function.unwrap()
     }
 
     pub fn match_use_arguments(&mut self, argument: &String) -> &EliteASTUseArguments {
@@ -131,15 +175,5 @@ impl EliteAST {
         if token_type.is_none() { return &EliteKeywords::Undefined; }
 
         token_type.unwrap()
-    }
-
-    pub fn extract_argument(&self, argument: &String) -> String {
-        if argument.starts_with('"') && argument.ends_with('"') {
-            let mut temporary = argument.chars();
-
-            temporary.next(); temporary.next_back();
-
-            self.to(temporary.as_str())
-        }  else { return self.to(""); }
     }
 }

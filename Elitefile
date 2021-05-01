@@ -9,7 +9,7 @@ set COMPILER as "gcc"
 \\    f("curl")
 \\)
 
-for signal("start") [
+for signal "start" [
     print "Hello, Elitebuild!"
 
     \\for argument("make") [
@@ -29,5 +29,9 @@ for signal("start") [
     \\    ]
     \\]
 
-    use signal("exit")
+    use exec "echo Hello, Elitebuild from syscall!"
+
+    use exec "uname --a"
+
+    use signal "exit"
 ]

@@ -11,10 +11,13 @@ use {
     crate::ast::{
         EliteKeywords,
         EliteASTUseArguments,
+        EliteASTUseFunctions,
 
         EliteAST,
         EliteDataTree,
-        EliteDataInfos
+        EliteDataInfos,
+
+        ast_helpers
     }
 };
 
@@ -88,7 +91,7 @@ impl EliteParser {
                 _ => {
                     if is_use {
                         if is_use_argument {
-                            let token: &String = &self.init_ast.extract_argument(token);
+                            let token: &String = &ast_helpers::extract_argument(token);
 
                             for argument in &self.init_ast.ast_for_use_arguments.clone() {
                                 if argument == token {
@@ -96,12 +99,20 @@ impl EliteParser {
                                 }
                             }
 
+                            if token.is_empty() { continue; }
+
+                            self.ast_parse_use_function(variable_data.clone(), token.clone());
+
+                            is_use = false;
+                            is_use_argument = false;
+
                             continue;
                         }
 
                         for function in &self.init_ast.ast_for_use {
                             if function == token {
                                 is_use_argument = true;
+                                variable_data = function.clone();
 
                                 continue;
                             }
@@ -110,7 +121,7 @@ impl EliteParser {
 
                     // Built-in regular print function.
                     if is_print {
-                        print!("{}", self.init_ast.extract_argument(token));
+                        print!("{}", ast_helpers::extract_argument(token));
 
                         is_print = false;
 
@@ -120,7 +131,7 @@ impl EliteParser {
                     // for signal("...")
                     if is_for {
                         if is_for_argument {
-                            let token = &(self.init_ast.extract_argument(token));
+                            let token = &(ast_helpers::extract_argument(token));
 
                             for argument in &self.init_ast.ast_for_functions_arguments {
                                 if argument == token {
@@ -161,6 +172,44 @@ impl EliteParser {
                         continue;
                     }
                 }
+            }
+        }
+    }
+
+    pub fn ast_parse_use_function(&mut self, function: String, mut argument: String) {
+        match self.init_ast.match_use_functions(&function) {
+            EliteASTUseFunctions::Signal => {
+                self.ast_parse_use(argument);
+            },
+            EliteASTUseFunctions::Exec => {
+                let mut command = String::new();
+
+                for character in argument.split(' ').collect::<Vec<_>>().get(0).unwrap().chars() {
+                    if character != '"' || character != ' ' {
+                        command.push(character);
+
+                        continue;
+                    }
+
+                    break;
+                }
+
+                if argument.contains(' ') {
+                    let mut arguments: Vec<&str> = argument.split(' ').collect();
+
+                    arguments.remove(0);
+
+                    std::process::Command::new(command)
+                        .args(arguments)
+                        .status();
+                }
+                else {
+                    std::process::Command::new(command)
+                        .status();
+                }
+            },
+            _ => {
+                // Syntax error (Undefined function)
             }
         }
     }

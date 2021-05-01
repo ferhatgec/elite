@@ -17,12 +17,15 @@ pub mod elite_tokenizer {
         let temporary_tokens: Vec<_> = raw_data.raw_data.split(' ').collect();
         let mut tokenized_data: Vec<String> = vec![];
 
+        let mut variable_data : String = String::new();
+
         let mut found_data = false;
 
         for (mut index, token) in temporary_tokens.iter().enumerate() {
             if is_data(&token) {
                 found_data = true;
                 tokenized_data.push(get_data(&temporary_tokens, index));
+
 
                 continue;
             }
@@ -31,6 +34,8 @@ pub mod elite_tokenizer {
             let mut x: Vec<_> = token.split(' ').collect::<Vec<&str>>();
 
             for operators in x {
+                variable_data.push_str(operators);
+
                 tokenized_data.push(operators.to_string());
             }
         }
@@ -42,6 +47,7 @@ pub mod elite_tokenizer {
         let mut temporary = String::new();
 
         temporary.push_str(tokens.get(n).unwrap());
+
         for (index, token) in tokens.iter().enumerate().skip(&n + 1) {
             if token.is_empty() { continue; }
 

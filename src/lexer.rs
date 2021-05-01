@@ -28,10 +28,11 @@ pub mod elite_lexer {
             ast_for_use                : vec![],
 
             ast_for_functions_arguments: vec![],
-            ast_for_use_arguments: vec![],
+            ast_for_use_arguments      : vec![],
 
             syntax_list                : Default::default(),
-            ast_use_list: Default::default()
+            ast_use_functions          : Default::default(),
+            ast_use_list               : Default::default()
         };
 
         init_ast.init_keywords();
