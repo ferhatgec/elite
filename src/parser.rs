@@ -174,7 +174,8 @@ impl EliteParser {
                             is_variable = false;
                             is_data_initializer = false;
 
-                            self.token_set(variable_name.clone(), token.clone());
+                            self.token_set(variable_name.clone(),
+                                           ast_helpers::extract_argument(token));
 
                             variable_name.clear();
 
