@@ -1,0 +1,33 @@
+set COMPILER as "gcc"
+
+\\set arguments as string (
+\\    "example.cpp",
+\\    "main.cpp"
+\\)
+
+\\ set flags as string (
+\\    f("curl")
+\\)
+
+for signal("start") [
+    print "Hello, Elitebuild!"
+
+    \\for argument("make") [
+    \\    for specific("linux") [
+    \\        use commandline(
+    \\            $COMPILER,
+    \\            $arguments,
+    \\            $flags
+    \\        )
+
+    \\        print "hello, world"
+    \\
+    \\        use commandline(
+    \\            "echo",
+    \\            "hello, world"
+    \\        )
+    \\    ]
+    \\]
+
+    \\use signal("exit")
+]
