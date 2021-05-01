@@ -29,6 +29,7 @@ pub enum EliteKeywords {
 pub enum EliteASTForFunctions {
     Signal,
     Specific,
+    Argument,
     Undefined
 }
 
@@ -172,8 +173,9 @@ impl EliteAST {
         self.add_token(self.ast_square_left_bracket.clone(), EliteKeywords::LeftSqBracket);
         self.add_token(self.ast_square_right_bracket.clone(), EliteKeywords::RightSqBracket);
 
-        self.add_for_function(self.to("signal"), EliteASTForFunctions::Signal);
+        self.add_for_function(self.to("signal"  ), EliteASTForFunctions::Signal  );
         self.add_for_function(self.to("specific"), EliteASTForFunctions::Specific);
+        self.add_for_function(self.to("argument"), EliteASTForFunctions::Argument);
 
         self.add_for_specific_target(self.to("windows"), EliteASTForSpecificTargets::Windows);
         self.add_for_specific_target(self.to("macos"), EliteASTForSpecificTargets::macOS);

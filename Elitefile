@@ -18,6 +18,14 @@ for signal "start" [
         println "Linux-based"
     ]
 
+    for argument "make" [
+        println "There's nothing to do."
+    ]
+
+    for argument "hi" [
+        println "Hi!"
+    ]
+
     for specific "freebsd" [
         println "FreeBSD"
     ]

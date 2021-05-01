@@ -48,6 +48,8 @@ impl EliteParser {
         let mut is_data_initializer = false;
 
         let mut is_function = false;
+
+        // Used by argument() and specific()
         let mut is_main_os  = true;
 
         let mut count_end_of_function: u32 = 0;
@@ -102,26 +104,36 @@ impl EliteParser {
                 EliteKeywords::LeftParenthese |
                 EliteKeywords::RightParenthese => {},
                 EliteKeywords::LeftSqBracket   => {
-                    if is_main_os {
+                    if is_main_os  {
                         count_end_of_function += 1;
                     }
 
                     continue;
                 },
                 EliteKeywords::RightSqBracket  => {
-                    if is_main_os  {
+                    if is_main_os {
                         count_end_of_function -= 1;
+                    }
+                    else {
+                        is_main_os = true;
                     }
 
                     if count_end_of_function == 0 {
-                        is_main_os = false;
-                        is_function = false;
+                        is_main_os       = false;
+                        is_function      = false;
                     }
 
                     continue;
                 },
                 _ => {
-                    if !is_main_os {continue;}
+                    if !is_main_os {
+                        is_newline      = false;
+                        is_print        = false;
+                        is_use          = false;
+                        is_use_argument = false;
+
+                        continue;
+                    }
 
                     if is_use {
                         if is_use_argument {
@@ -174,13 +186,16 @@ impl EliteParser {
                         if is_for_argument {
                             let token = &(ast_helpers::extract_argument(token));
 
-                            if last_matched_function == EliteASTForFunctions::Specific {
-                                is_main_os = self.ast_parse_for_functions(variable_name.clone(),
-                                                                          ast_helpers::extract_argument(token));
-                            }
-                            else {
-                                self.ast_parse_for_functions(variable_name.clone(),
-                                                             ast_helpers::extract_argument(token));
+                            match last_matched_function {
+                                EliteASTForFunctions::Specific |
+                                EliteASTForFunctions::Argument => {
+                                    is_main_os = self.ast_parse_for_functions(variable_name.clone(),
+                                                                              ast_helpers::extract_argument(token));
+                                },
+                                _ => {
+                                    self.ast_parse_for_functions(variable_name.clone(),
+                                                                 ast_helpers::extract_argument(token));
+                                }
                             }
 
                             is_for = false;
@@ -230,6 +245,9 @@ impl EliteParser {
             },
             EliteASTForFunctions::Specific => {
                 self.ast_parse_for_specific_target(argument)
+            },
+            EliteASTForFunctions::Argument => {
+                self.is_same_arg(&argument)
             },
             _ => {
                 // Syntax error (undefined function)
@@ -340,6 +358,14 @@ impl EliteParser {
                     __data: data
                 }
         );
+    }
+
+    pub fn is_same_arg(&self, argument: &String) -> bool {
+        let __argument: Vec<_> = std::env::args().collect();
+
+        return if __argument.last().unwrap() == argument {
+            true
+        } else { false };
     }
 
     pub fn is_same(&self, target: &String) -> bool {
