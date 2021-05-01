@@ -10,7 +10,9 @@ pub mod elite_tokenizer {
         '(',
         ')',
         '[',
-        ']'
+        ']',
+        '$',
+        ','
     ];
 
     pub fn tokenize_first(raw_data: &crate::read::EliteFileData) -> Vec<String> {
@@ -79,6 +81,12 @@ pub mod elite_tokenizer {
 
     pub fn is_data(token: &&str) -> bool {
         return if token.trim_start().starts_with('"') || token.trim_end().ends_with('"') {
+            true
+        } else { false };
+    }
+
+    pub fn is_variable(token: &&str) -> bool {
+        return if token.trim_start().starts_with('$') {
             true
         } else { false };
     }

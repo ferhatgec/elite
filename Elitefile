@@ -1,4 +1,7 @@
 set COMPILER as "gcc"
+set fn       as "for"
+set commandline as "argument"
+set echo        as "println"
 
 \\set arguments as string (
 \\    "example.cpp",
@@ -10,15 +13,18 @@ set COMPILER as "gcc"
 \\)
 
 // Start signal
-for signal "start" [
-    println "Hello, Elitebuild!"
+$fn signal "start" [
+    $echo "Hello, Elitebuild!"
+
+    print "Default compiler is: "
+    $echo $COMPILER
 
     // Platform-specific functions.
-    for specific "linux"   [
+    $fn specific "linux"   [
         println "Linux-based"
     ]
 
-    for argument "make" [
+    for $commandline "make" [
         println "There's nothing to do."
     ]
 

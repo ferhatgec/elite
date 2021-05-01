@@ -22,6 +22,7 @@ use {
         ast_helpers
     }
 };
+use std::borrow::Borrow;
 
 pub struct EliteParser {
     pub(crate) init_ast : EliteAST,
@@ -34,7 +35,7 @@ impl EliteParser {
         let mut last_matched_function = EliteASTForFunctions::Undefined;
 
         let mut is_variable = false;
-        let mut is_data     = false;
+        let mut is_defined  = false;
 
         let mut is_for         = false;
         let mut is_for_argument= false;
@@ -60,9 +61,20 @@ impl EliteParser {
         for token in tokens {
             if token.is_empty() { continue; }
 
-            let token = &self.init_ast.to(token.trim());
+            let mut token = self.init_ast.to(token.trim());
 
-            __matched_type = *self.init_ast.match_types(token);
+            if is_defined {
+                token = self.token_get(token.to_owned());
+
+                is_defined = false;
+            }
+            else if crate::tokenizer::elite_tokenizer::is_variable(&token.as_str()) {
+                is_defined = true;
+
+                continue;
+            }
+
+            __matched_type = *self.init_ast.match_types(&token);
 
             match __matched_type {
                 EliteKeywords::Set => {
@@ -137,7 +149,7 @@ impl EliteParser {
 
                     if is_use {
                         if is_use_argument {
-                            let token: &String = &ast_helpers::extract_argument(token);
+                            let token: &String = &ast_helpers::extract_argument(&token);
 
                             for argument in &self.init_ast.ast_for_use_arguments.clone() {
                                 if argument == token {
@@ -157,7 +169,7 @@ impl EliteParser {
                         }
 
                         for function in &self.init_ast.ast_for_use {
-                            if function == token {
+                            if function == &token {
                                 is_use_argument = true;
                                 variable_data = function.clone();
 
@@ -168,7 +180,7 @@ impl EliteParser {
 
                     // Built-in regular print function.
                     if is_print {
-                        print!("{}", ast_helpers::extract_argument(token));
+                        print!("{}", ast_helpers::extract_argument(&token));
 
                         is_print = false;
 
@@ -184,7 +196,7 @@ impl EliteParser {
                     // for signal("...")
                     if is_for {
                         if is_for_argument {
-                            let token = &(ast_helpers::extract_argument(token));
+                            let token = &(ast_helpers::extract_argument(&token));
 
                             match last_matched_function {
                                 EliteASTForFunctions::Specific |
@@ -206,9 +218,9 @@ impl EliteParser {
                             continue;
                         }
 
-                        if self.init_ast.match_for_functions(token) != &EliteASTForFunctions::Undefined {
+                        if self.init_ast.match_for_functions(&token) != &EliteASTForFunctions::Undefined {
                             is_for_argument = true;
-                            last_matched_function = *self.init_ast.match_for_functions(token);
+                            last_matched_function = *self.init_ast.match_for_functions(&token);
 
                             variable_name   = token.clone();
                         }
@@ -222,7 +234,7 @@ impl EliteParser {
                             is_data_initializer = false;
 
                             self.token_set(variable_name.clone(),
-                                           ast_helpers::extract_argument(token));
+                                           ast_helpers::extract_argument(&token));
 
                             variable_name.clear();
 
@@ -358,6 +370,16 @@ impl EliteParser {
                     __data: data
                 }
         );
+    }
+
+    pub fn token_get(&self, variable: String) -> String {
+        for variable_list in self.data_tree.variable_list.iter() {
+            if variable == variable_list.__name {
+                if variable_list.__type != EliteKeywords::Undefined { return String::from(variable_list.__data.clone()); }
+            }
+        }
+
+        self.init_ast.to("")
     }
 
     pub fn is_same_arg(&self, argument: &String) -> bool {
