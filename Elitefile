@@ -24,7 +24,16 @@ $fn signal "start" [
 
     println "Default compiler is: {COMPILER}"
 
-    // Platform-specific functions.
+    set echo as "print"
+
+    $echo "Huh!"
+
+    set echo as "println"
+
+    \\ Prints newline
+    $echo
+
+    \\ Platform-specific functions.
     $fn specific "{Linux}"   [
         println "Linux-based"
     ]
@@ -58,12 +67,12 @@ $fn signal "start" [
     \\    ]
     \\]
 
-    // {...} default formatter
+    \\ {...} default formatter
     for specific "{Linux}"   [ use exec   "echo Hello, Elitebuild from syscall! (for Linux-based)" ]
 
     for specific "{FreeBSD}" [ use exec   "echo Hello, Elitebuild from syscall! (for FreeBSD)" ]
 
     for specific "{Linux}"   [ use exec   "uname --a" ]
 
-    for specific "linux"   [ use signal "exit" ]
+    for specific "linux"     [ use signal "exit" ]
 ]

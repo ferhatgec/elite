@@ -23,6 +23,7 @@ use {
     }
 };
 use std::borrow::Borrow;
+use std::env::var;
 
 pub struct EliteParser {
     pub(crate) init_ast : EliteAST,
@@ -398,6 +399,15 @@ impl EliteParser {
     // Syntax rule:
     // use {VARIABLE_NAME} as {data}
     pub fn token_set(&mut self, variable: String, data: String) {
+        // Check is variable exists.
+        for (_index, variable_list) in self.data_tree.variable_list.iter().enumerate() {
+            if variable_list.__name == variable {
+                self.data_tree.variable_list[_index].__data = data.clone();
+
+                return;
+            }
+        }
+
         self.data_tree.variable_list.push(
                 EliteDataInfos {
                     __type: EliteKeywords::Set,
