@@ -9,6 +9,8 @@ set make_arg    as "make"
 set Linux       as "linux"
 set FreeBSD     as "freebsd"
 
+set COMPILER_PATH as "/usr/bin/{COMPILER}"
+
 \\set arguments as string (
 \\    "example.cpp",
 \\    "main.cpp"
@@ -35,6 +37,10 @@ $fn signal "start" [
 
     \\ Platform-specific functions.
     $fn specific "{Linux}"   [
+        for exists "{COMPILER_PATH}" [
+            println "Compiler path found: {COMPILER_PATH}"
+        ]
+
         println "Linux-based"
     ]
 

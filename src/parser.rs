@@ -236,7 +236,8 @@ impl EliteParser {
 
                             match last_matched_function {
                                 EliteASTForFunctions::Specific |
-                                EliteASTForFunctions::Argument => {
+                                EliteASTForFunctions::Argument |
+                                EliteASTForFunctions::Exists   => {
                                     is_main_os = self.ast_parse_for_functions(variable_name.clone(),
                                                                               ast_helpers::extract_argument(token));
                                 },
@@ -296,6 +297,9 @@ impl EliteParser {
             },
             EliteASTForFunctions::Argument => {
                 self.is_same_arg(&argument)
+            },
+            EliteASTForFunctions::Exists   => {
+                self.is_exists(&argument)
             },
             _ => {
                 // Syntax error (undefined function)
@@ -425,6 +429,12 @@ impl EliteParser {
         }
 
         self.init_ast.to("")
+    }
+
+    pub fn is_exists(&self, path: &String) -> bool {
+        return if std::path::Path::new(path).exists() {
+            true
+        } else { false };
     }
 
     pub fn is_same_arg(&self, argument: &String) -> bool {

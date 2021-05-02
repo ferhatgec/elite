@@ -30,6 +30,7 @@ pub enum EliteASTForFunctions {
     Signal,
     Specific,
     Argument,
+    Exists,
     Undefined
 }
 
@@ -133,18 +134,18 @@ pub mod ast_helpers {
 
 impl EliteAST {
     pub fn init_keywords(&mut self) {
-        self.ast_set   = self.to("set"             );
-        self.ast_as    = self.to("as"              );
-        self.ast_for   = self.to("for"             );
-        self.ast_print = self.to("print"           );
-        self.ast_println= format!("{}ln", self.ast_print);
-        self.ast_use   = self.to("use"             );
+        self.ast_set                 = self.to("set"             );
+        self.ast_as                  = self.to("as"              );
+        self.ast_for                 = self.to("for"             );
+        self.ast_print               = self.to("print"           );
+        self.ast_println             = format!("{}ln", self.ast_print);
+        self.ast_use                 = self.to("use"             );
 
-        self.ast_left_parenthese = self.to("(");
-        self.ast_right_parenthese= self.to(")");
+        self.ast_left_parenthese     = self.to("("               );
+        self.ast_right_parenthese    = self.to(")"               );
 
-        self.ast_square_left_bracket = self.to("[");
-        self.ast_square_right_bracket= self.to("]");
+        self.ast_square_left_bracket = self.to("["               );
+        self.ast_square_right_bracket= self.to("]"              );
 
 
         self.ast_for_functions_arguments = vec![
@@ -167,15 +168,16 @@ impl EliteAST {
         self.add_token(self.ast_println.clone(), EliteKeywords::Println);
         self.add_token(self.ast_use.clone    (), EliteKeywords::Use    );
 
-        self.add_token(self.ast_left_parenthese.clone(), EliteKeywords::LeftParenthese);
+        self.add_token(self.ast_left_parenthese.clone(), EliteKeywords::LeftParenthese  );
         self.add_token(self.ast_right_parenthese.clone(), EliteKeywords::RightParenthese);
 
-        self.add_token(self.ast_square_left_bracket.clone(), EliteKeywords::LeftSqBracket);
+        self.add_token(self.ast_square_left_bracket.clone(), EliteKeywords::LeftSqBracket  );
         self.add_token(self.ast_square_right_bracket.clone(), EliteKeywords::RightSqBracket);
 
         self.add_for_function(self.to("signal"  ), EliteASTForFunctions::Signal  );
         self.add_for_function(self.to("specific"), EliteASTForFunctions::Specific);
         self.add_for_function(self.to("argument"), EliteASTForFunctions::Argument);
+        self.add_for_function(self.to("exists"  ), EliteASTForFunctions::Exists  );
 
         self.add_for_specific_target(self.to("windows"), EliteASTForSpecificTargets::Windows);
         self.add_for_specific_target(self.to("macos"), EliteASTForSpecificTargets::macOS);
@@ -191,7 +193,7 @@ impl EliteAST {
         self.add_use_function(self.to("signal"), EliteASTUseFunctions::Signal);
         self.add_use_function(self.to("exec"  ), EliteASTUseFunctions::Exec  );
 
-        self.add_use_argument(self.to("exit"), EliteASTUseArguments::Exit);
+        self.add_use_argument(self.to("exit"), EliteASTUseArguments::Exit   );
     }
 
     fn add_token(&mut self, token: String, token_type: EliteKeywords) {
