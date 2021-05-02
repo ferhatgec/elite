@@ -22,6 +22,7 @@ set COMPILER_PATH as "/usr/bin/{COMPILER}"
 
 // Start signal
 $fn signal "start" [
+    // Do not use like this comments, Elite ignores them with warning message.
     $echo "Hello, {ProjectName}!"
 
     println "Default compiler is: {COMPILER}"

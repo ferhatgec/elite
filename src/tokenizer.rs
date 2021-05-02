@@ -93,9 +93,19 @@ pub mod elite_tokenizer {
     pub fn is_comment(token: &&str) -> bool {
         if token.len() < 2 { return false; }
 
-        return if token.trim_start().starts_with('\\') && token.trim_start().chars().nth(1).unwrap() == '\\' {
+        let token = token.trim();
+
+        return if token.starts_with('\\') && token.chars().nth(1).unwrap() == '\\' {
             true
-        } else { false };
+        }
+        else if token.starts_with('/') && token.chars().nth(1).unwrap() == '/' {
+            println!("do not use '//' as comment, ignored.");
+
+            true
+        }
+        else {
+            false
+        };
     }
 
     pub fn replace_with(token: &String, character: char) -> String {
