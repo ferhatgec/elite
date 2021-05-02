@@ -15,6 +15,7 @@ pub enum EliteKeywords {
     Print,
     Println,
     Use,
+    If,
 
     LeftParenthese,
     RightParenthese,
@@ -49,6 +50,12 @@ pub enum EliteASTForSpecificTargets {
     Undefined
 }
 
+#[derive(PartialEq, Copy, Clone)]
+pub enum EliteASTIfFunctions {
+    Eq,
+    Undefined
+}
+
 pub enum EliteASTUseFunctions {
     Signal,
     Exec,
@@ -67,6 +74,7 @@ pub struct EliteAST {
     pub ast_print                  : String,
     pub ast_println                : String,
     pub ast_use                    : String,
+    pub ast_if                     : String,
 
     pub ast_left_parenthese        : String,
     pub ast_right_parenthese       : String,
@@ -83,6 +91,9 @@ pub struct EliteAST {
 
     pub ast_for_functions          : HashMap<String, EliteASTForFunctions>,
     pub ast_for_specific_targets   : HashMap<String, EliteASTForSpecificTargets>,
+
+    pub ast_if_functions           : HashMap<String, EliteASTIfFunctions>,
+
     pub ast_use_functions          : HashMap<String, EliteASTUseFunctions>,
     pub ast_use_list               : HashMap<String, EliteASTUseArguments>
 }
@@ -140,13 +151,13 @@ impl EliteAST {
         self.ast_print               = self.to("print"           );
         self.ast_println             = format!("{}ln", self.ast_print);
         self.ast_use                 = self.to("use"             );
+        self.ast_if                  = self.to("if"              );
 
         self.ast_left_parenthese     = self.to("("               );
         self.ast_right_parenthese    = self.to(")"               );
 
         self.ast_square_left_bracket = self.to("["               );
         self.ast_square_right_bracket= self.to("]"              );
-
 
         self.ast_for_functions_arguments = vec![
             self.to("start")
@@ -167,6 +178,7 @@ impl EliteAST {
         self.add_token(self.ast_print.clone  (), EliteKeywords::Print  );
         self.add_token(self.ast_println.clone(), EliteKeywords::Println);
         self.add_token(self.ast_use.clone    (), EliteKeywords::Use    );
+        self.add_token(self.ast_if.clone     (), EliteKeywords::If     );
 
         self.add_token(self.ast_left_parenthese.clone(), EliteKeywords::LeftParenthese  );
         self.add_token(self.ast_right_parenthese.clone(), EliteKeywords::RightParenthese);
@@ -179,16 +191,18 @@ impl EliteAST {
         self.add_for_function(self.to("argument"), EliteASTForFunctions::Argument);
         self.add_for_function(self.to("exists"  ), EliteASTForFunctions::Exists  );
 
-        self.add_for_specific_target(self.to("windows"), EliteASTForSpecificTargets::Windows);
-        self.add_for_specific_target(self.to("macos"), EliteASTForSpecificTargets::macOS);
-        self.add_for_specific_target(self.to("ios"), EliteASTForSpecificTargets::iOS);
-        self.add_for_specific_target(self.to("linux"), EliteASTForSpecificTargets::Linux);
-        self.add_for_specific_target(self.to("android"), EliteASTForSpecificTargets::Android);
-        self.add_for_specific_target(self.to("freebsd"), EliteASTForSpecificTargets::FreeBSD);
+        self.add_for_specific_target(self.to("windows"  ), EliteASTForSpecificTargets::Windows  );
+        self.add_for_specific_target(self.to("macos"    ), EliteASTForSpecificTargets::macOS    );
+        self.add_for_specific_target(self.to("ios"      ), EliteASTForSpecificTargets::iOS      );
+        self.add_for_specific_target(self.to("linux"    ), EliteASTForSpecificTargets::Linux    );
+        self.add_for_specific_target(self.to("android"  ), EliteASTForSpecificTargets::Android  );
+        self.add_for_specific_target(self.to("freebsd"  ), EliteASTForSpecificTargets::FreeBSD  );
         self.add_for_specific_target(self.to("dragonfly"), EliteASTForSpecificTargets::DragonFly);
-        self.add_for_specific_target(self.to("bitrig"), EliteASTForSpecificTargets::Bitrig);
-        self.add_for_specific_target(self.to("openbsd"), EliteASTForSpecificTargets::OpenBSD);
-        self.add_for_specific_target(self.to("netbsd"), EliteASTForSpecificTargets::NetBSD);
+        self.add_for_specific_target(self.to("bitrig"   ), EliteASTForSpecificTargets::Bitrig   );
+        self.add_for_specific_target(self.to("openbsd"  ), EliteASTForSpecificTargets::OpenBSD  );
+        self.add_for_specific_target(self.to("netbsd"   ), EliteASTForSpecificTargets::NetBSD   );
+
+        self.add_if_function        (self.to("eq"      ), EliteASTIfFunctions::Eq);
 
         self.add_use_function(self.to("signal"), EliteASTUseFunctions::Signal);
         self.add_use_function(self.to("exec"  ), EliteASTUseFunctions::Exec  );
@@ -206,6 +220,10 @@ impl EliteAST {
 
     fn add_for_specific_target(&mut self, function: String, token_type: EliteASTForSpecificTargets) {
         self.ast_for_specific_targets.insert(function, token_type);
+    }
+
+    fn add_if_function(&mut self, statement: String, token_type: EliteASTIfFunctions) {
+        self.ast_if_functions.insert(statement, token_type);
     }
 
     fn add_use_function(&mut self, function: String, token_type: EliteASTUseFunctions) {
@@ -234,6 +252,14 @@ impl EliteAST {
         if target.is_none() { return &EliteASTForSpecificTargets::Undefined; }
 
         target.unwrap()
+    }
+
+    pub fn match_if_functions(&mut self, statement: &String) -> &EliteASTIfFunctions {
+        let statement = self.ast_if_functions.get(statement);
+
+        if statement.is_none() { return &EliteASTIfFunctions::Undefined; }
+
+        statement.unwrap()
     }
 
     pub fn match_use_functions(&mut self, function: &String) -> &EliteASTUseFunctions {

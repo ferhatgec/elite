@@ -12,6 +12,8 @@ use {
         EliteASTForFunctions,
         EliteASTForSpecificTargets,
 
+        EliteASTIfFunctions,
+
         EliteASTUseArguments,
         EliteASTUseFunctions,
 
@@ -32,14 +34,18 @@ pub struct EliteParser {
 
 impl EliteParser {
     pub fn parse_tokens(&mut self, tokens: &Vec<String>) {
-        let mut __matched_type = EliteKeywords::Undefined;
-        let mut last_matched_function = EliteASTForFunctions::Undefined;
+        let mut __matched_type           = EliteKeywords::Undefined;
+        let mut last_matched_function    = EliteASTForFunctions::Undefined;
+        let mut last_matched_if_function = EliteASTIfFunctions::Undefined;
 
         let mut is_variable = false;
         let mut is_defined  = false;
 
         let mut is_for         = false;
         let mut is_for_argument= false;
+
+        let mut is_if          = false;
+        let mut is_if_function = false;
 
         let mut is_print   = false;
         let mut is_newline = false;
@@ -58,6 +64,9 @@ impl EliteParser {
 
         let mut variable_name = String::new();
         let mut variable_data = String::new();
+
+        let mut first_if_argument = String::new();
+        let mut second_if_argument= String::new();
 
         for token in tokens {
             if token.is_empty() { continue; }
@@ -110,6 +119,11 @@ impl EliteParser {
                 },
                 EliteKeywords::Use => {
                     is_use = true;
+
+                    continue;
+                },
+                EliteKeywords::If  => {
+                    is_if = true;
 
                     continue;
                 },
@@ -181,6 +195,51 @@ impl EliteParser {
                         }
 
                         token = __data;
+                    }
+
+                    if is_if {
+                        if token.is_empty() { continue; }
+
+                        if is_if_function {
+                            if first_if_argument.is_empty() {
+                                first_if_argument = crate::ast::ast_helpers::extract_argument(&token);
+
+                                continue;
+                            }
+
+                            if second_if_argument.is_empty() {
+                                second_if_argument = crate::ast::ast_helpers::extract_argument(&token);
+                            }
+
+                            match last_matched_if_function {
+                                EliteASTIfFunctions::Eq  => {
+                                    is_main_os = self.ast_parse_if_function(variable_name.clone(),
+                                                                            crate::ast::ast_helpers::extract_argument(&first_if_argument.clone()),
+                                                                            crate::ast::ast_helpers::extract_argument(&second_if_argument.clone()));
+                                },
+                                _ => {
+                                    // Syntax error
+                                }
+                            }
+
+                            is_if          = false;
+                            is_if_function = false;
+
+                            first_if_argument .clear();
+                            second_if_argument.clear();
+
+                            continue;
+                        }
+
+                        if self.init_ast.match_if_functions(&token) != &EliteASTIfFunctions::Undefined {
+                            is_if_function = true;
+
+                            last_matched_if_function = *self.init_ast.match_if_functions(&token);
+
+                            variable_name   = token.clone();
+                        }
+
+                        continue;
                     }
 
                     if is_use {
@@ -351,6 +410,21 @@ impl EliteParser {
         }
     }
 
+    pub fn ast_parse_if_function(&mut self, function: String,  argument_1: String, argument_2: String) -> bool {
+        match self.init_ast.match_if_functions(&function) {
+            EliteASTIfFunctions::Eq => {
+                self.is_same_argument(&argument_1, &argument_2)
+            },
+            EliteASTIfFunctions::Undefined => {
+                // Syntax error (undefined function (eq, etc.)
+                false
+            },
+            _ => {
+                false
+            }
+        }
+    }
+
     pub fn ast_parse_use_function(&mut self, function: String, argument: String) {
         match self.init_ast.match_use_functions(&function) {
             EliteASTUseFunctions::Signal => {
@@ -447,6 +521,12 @@ impl EliteParser {
 
     pub fn is_same(&self, target: &String) -> bool {
         return if std::env::consts::OS == target {
+            true
+        } else { false };
+    }
+
+    pub fn is_same_argument(&self, argument_1: &String, argument_2: &String) -> bool {
+        return if argument_1 == argument_2 {
             true
         } else { false };
     }

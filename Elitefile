@@ -36,6 +36,12 @@ $fn signal "start" [
     \\ Prints newline
     $echo
 
+    if eq "{ProjectName}" "Elitebuild" [
+        println "ProjectName checked."
+    ]
+
+    \\ You can also use $ProjectName instead of formatter
+
     \\ Platform-specific functions.
     $fn specific "{Linux}"   [
         for exists "{COMPILER_PATH}" [

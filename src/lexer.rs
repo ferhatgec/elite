@@ -19,6 +19,7 @@ pub mod elite_lexer {
             ast_println                : "".to_string(),
 
             ast_use                    : "".to_string(),
+            ast_if                     : "".to_string(),
             ast_left_parenthese        : "".to_string(),
             ast_right_parenthese       : "".to_string(),
 
@@ -33,6 +34,7 @@ pub mod elite_lexer {
             syntax_list                : Default::default(),
             ast_for_functions          : Default::default(),
             ast_for_specific_targets   : Default::default(),
+            ast_if_functions           : Default::default(),
             ast_use_functions          : Default::default(),
             ast_use_list               : Default::default()
         };
