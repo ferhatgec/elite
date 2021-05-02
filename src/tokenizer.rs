@@ -22,8 +22,35 @@ pub mod elite_tokenizer {
         let mut variable_data : String = String::new();
 
         let mut found_data = false;
+        let mut is_env     = false;
 
         for (index, token) in temporary_tokens.iter().enumerate() {
+            if is_env {
+                let environment = get_environment(&crate::ast::ast_helpers::extract_argument(
+                    &token.to_string()).as_str());
+
+                // Replace whitespace with '_'
+                //if !is_data(&token) {
+                    // Error (Environments must be string that has not any whitespaces (use _ instead))
+                //}
+
+                if !environment.is_empty() {
+                    tokenized_data.push(environment.to_owned());
+                }
+                // else {
+                    // Error (environment not found in this scope)
+                //}
+
+                is_env = false;
+
+                continue
+            }
+
+            if is_env_token(&token) {
+                is_env = true;
+                continue;
+            }
+
             if is_data(&token) {
                 found_data = true;
                 tokenized_data.push(get_data(&temporary_tokens, index));
@@ -90,6 +117,12 @@ pub mod elite_tokenizer {
         } else { false };
     }
 
+    pub fn is_env_token(token: &&str) -> bool {
+        return if token == &"env" {
+            true
+        } else { false };
+    }
+
     pub fn is_comment(token: &&str) -> bool {
         if token.len() < 2 { return false; }
 
@@ -106,6 +139,14 @@ pub mod elite_tokenizer {
         else {
             false
         };
+    }
+
+    pub fn get_environment(data: &&str) -> String {
+        return match std::env::var(data) {
+            Ok(__data)   => __data,
+            Err(__error) => "".to_string(),
+            _            => "".to_string()
+        }
     }
 
     pub fn replace_with(token: &String, character: char) -> String {

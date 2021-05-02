@@ -9,6 +9,8 @@ set make_arg    as "make"
 set Linux       as "linux"
 set FreeBSD     as "freebsd"
 
+set HOME        as env "HOME"
+
 set COMPILER_PATH as "/usr/bin/{COMPILER}"
 
 \\set arguments as string (
@@ -36,12 +38,19 @@ $fn signal "start" [
     \\ Prints newline
     $echo
 
+    $echo $HOME
+
     if eq "{ProjectName}" "Elitebuild" [
         println "ProjectName checked."
     ]
 
     if uneq "{COMPILER}" "gcc" [
         println "Your compiler seemsly not GCC, unoptimized."
+    ]
+
+    if uneq "{HOME}" env "PWD" [
+        println "Current directory is not {HOME}!"
+        print   "Current dir is " println env "PWD"
     ]
 
     \\ You can also use $ProjectName instead of formatter
