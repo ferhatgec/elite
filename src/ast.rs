@@ -53,6 +53,7 @@ pub enum EliteASTForSpecificTargets {
 #[derive(PartialEq, Copy, Clone)]
 pub enum EliteASTIfFunctions {
     Eq,
+    UnEq,
     Undefined
 }
 
@@ -202,7 +203,8 @@ impl EliteAST {
         self.add_for_specific_target(self.to("openbsd"  ), EliteASTForSpecificTargets::OpenBSD  );
         self.add_for_specific_target(self.to("netbsd"   ), EliteASTForSpecificTargets::NetBSD   );
 
-        self.add_if_function        (self.to("eq"      ), EliteASTIfFunctions::Eq);
+        self.add_if_function        (self.to("eq"      ), EliteASTIfFunctions::Eq  );
+        self.add_if_function        (self.to("uneq"    ), EliteASTIfFunctions::UnEq);
 
         self.add_use_function(self.to("signal"), EliteASTUseFunctions::Signal);
         self.add_use_function(self.to("exec"  ), EliteASTUseFunctions::Exec  );

@@ -212,7 +212,8 @@ impl EliteParser {
                             }
 
                             match last_matched_if_function {
-                                EliteASTIfFunctions::Eq  => {
+                                EliteASTIfFunctions::Eq |
+                                EliteASTIfFunctions::UnEq => {
                                     is_main_os = self.ast_parse_if_function(variable_name.clone(),
                                                                             crate::ast::ast_helpers::extract_argument(&first_if_argument.clone()),
                                                                             crate::ast::ast_helpers::extract_argument(&second_if_argument.clone()));
@@ -415,6 +416,9 @@ impl EliteParser {
             EliteASTIfFunctions::Eq => {
                 self.is_same_argument(&argument_1, &argument_2)
             },
+            EliteASTIfFunctions::UnEq => {
+                self.is_not_same_argument(&argument_1, &argument_2)
+            },
             EliteASTIfFunctions::Undefined => {
                 // Syntax error (undefined function (eq, etc.)
                 false
@@ -527,6 +531,12 @@ impl EliteParser {
 
     pub fn is_same_argument(&self, argument_1: &String, argument_2: &String) -> bool {
         return if argument_1 == argument_2 {
+            true
+        } else { false };
+    }
+
+    pub fn is_not_same_argument(&self, argument_1: &String, argument_2: &String) -> bool {
+        return if argument_1 != argument_2 {
             true
         } else { false };
     }

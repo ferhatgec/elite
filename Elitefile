@@ -40,6 +40,10 @@ $fn signal "start" [
         println "ProjectName checked."
     ]
 
+    if uneq "{COMPILER}" "gcc" [
+        println "Your compiler seemsly not GCC, unoptimized."
+    ]
+
     \\ You can also use $ProjectName instead of formatter
 
     \\ Platform-specific functions.
