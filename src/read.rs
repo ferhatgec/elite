@@ -5,7 +5,16 @@
 //
 //
 
-use std::io::BufRead;
+use {
+    std::io::BufRead,
+
+    crate::{
+        logger::{
+            EliteLogType,
+            elite_logger
+        }
+    }
+};
 
 pub struct EliteFileData {
     pub raw_data: String,
@@ -33,7 +42,9 @@ impl EliteFileData {
 
     pub fn read_raw_file(&mut self, file: &String) {
         if !self.check_is_elite(file) {
-            println!("to_lowercase({}) ignored", file);
+            elite_logger::log(EliteLogType::Info,
+                              &"filename".to_string(),
+                              &format!("to_lowercase({}) ignored", file));
         }
 
         let mut raw_data = String::new();

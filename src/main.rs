@@ -10,6 +10,7 @@ mod read;
 mod lexer;
 mod tokenizer;
 mod ast;
+mod logger;
 
 fn main() {
     let cli_arguments: Vec<_> = std::env::args().collect();

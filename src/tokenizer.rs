@@ -6,6 +6,8 @@
 //
 
 pub mod elite_tokenizer {
+    use crate::logger::{ EliteLogType, elite_logger };
+
     static TOKEN_LIST: &'static [char] = &[
         '(',
         ')',
@@ -131,7 +133,9 @@ pub mod elite_tokenizer {
             true
         }
         else if token.starts_with('/') && token.chars().nth(1).unwrap() == '/' {
-            println!("do not use '//' as comment, ignored.");
+            elite_logger::log(EliteLogType::Warning,
+                              &"comment".to_string(),
+                              &"do not use '\x1b[1;97m//\x1b[0m' as comment, ignored.".to_string());
 
             true
         }
