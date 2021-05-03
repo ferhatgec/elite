@@ -57,9 +57,11 @@ pub enum EliteASTIfFunctions {
     Undefined
 }
 
+#[derive(PartialEq)]
 pub enum EliteASTUseFunctions {
     Signal,
     Exec,
+    AddSource,
     Undefined
 }
 
@@ -206,10 +208,11 @@ impl EliteAST {
         self.add_if_function        (self.to("eq"      ), EliteASTIfFunctions::Eq  );
         self.add_if_function        (self.to("uneq"    ), EliteASTIfFunctions::UnEq);
 
-        self.add_use_function(self.to("signal"), EliteASTUseFunctions::Signal);
-        self.add_use_function(self.to("exec"  ), EliteASTUseFunctions::Exec  );
+        self.add_use_function(self.to("signal"    ), EliteASTUseFunctions::Signal   );
+        self.add_use_function(self.to("exec"      ), EliteASTUseFunctions::Exec     );
+        self.add_use_function(self.to("add_source"), EliteASTUseFunctions::AddSource);
 
-        self.add_use_argument(self.to("exit"), EliteASTUseArguments::Exit   );
+        self.add_use_argument(self.to("exit"     ), EliteASTUseArguments::Exit     );
     }
 
     fn add_token(&mut self, token: String, token_type: EliteKeywords) {

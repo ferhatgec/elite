@@ -24,8 +24,6 @@ use {
         ast_helpers
     }
 };
-use std::borrow::Borrow;
-use std::env::var;
 
 pub struct EliteParser {
     pub(crate) init_ast : EliteAST,
@@ -60,6 +58,9 @@ impl EliteParser {
         // Used by argument() and specific()
         let mut is_main_os  = true;
 
+        let mut is_use_add_source   = false;
+        let mut is_use_add_argument = false;
+
         let mut count_end_of_function: u32 = 0;
 
         let mut variable_name = String::new();
@@ -67,6 +68,8 @@ impl EliteParser {
 
         let mut first_if_argument = String::new();
         let mut second_if_argument= String::new();
+
+        let mut use_add_source_argument = String::new();
 
         for token in tokens {
             if token.is_empty() { continue; }
@@ -244,6 +247,40 @@ impl EliteParser {
                     }
 
                     if is_use {
+                        // All 'use' functions are takes 1 argument
+                        // add_source is excepted, it's requires 2 argument.
+                        if is_use_add_source {
+                            if is_use_add_argument {
+                                let token = ast_helpers::extract_argument(&token);
+
+                                //if !std::path::Path::new(&token).exists() {
+                                    // Warning (added source file is not exists)
+                                //}
+
+                                self.token_append(use_add_source_argument.clone(),
+                                                  ast_helpers::extract_argument(&token));
+
+                                is_use_add_source   = false;
+                                is_use_add_argument = false;
+
+                                use_add_source_argument.clear();
+
+                                continue;
+                            }
+
+                            use_add_source_argument = token.clone();
+
+                            is_use_add_argument     = true;
+
+                            continue;
+                        }
+
+                        if self.init_ast.match_use_functions(&token) == &EliteASTUseFunctions::AddSource {
+                            is_use_add_source = true;
+
+                            continue;
+                        }
+
                         if is_use_argument {
                             let token: &String = &ast_helpers::extract_argument(&token);
 
@@ -255,8 +292,10 @@ impl EliteParser {
 
                             if token.is_empty() { continue; }
 
+
                             self.ast_parse_use_function(variable_data.clone(),
                                                         ast_helpers::extract_argument(token));
+
 
                             is_use = false;
                             is_use_argument = false;
@@ -460,9 +499,9 @@ impl EliteParser {
                     std::process::Command::new(command)
                         .status();
                 }
-            },
+            }
             _ => {
-                // Syntax error (Undefined function)
+                // Syntax error (Undefined function except add_source)
             }
         }
     }
@@ -507,6 +546,16 @@ impl EliteParser {
         }
 
         self.init_ast.to("")
+    }
+
+    pub fn token_append(&mut self, variable: String, argument: String) {
+        for (_index, variable_list) in self.data_tree.variable_list.iter().enumerate() {
+            if variable_list.__name == variable {
+                self.data_tree.variable_list[_index].__data.push_str(
+                    format!(" {}", argument).as_str());
+                return;
+            }
+        }
     }
 
     pub fn is_exists(&self, path: &String) -> bool {

@@ -106,7 +106,8 @@ pub mod elite_tokenizer {
     }
 
     pub fn is_data(token: &&str) -> bool {
-        return if token.trim_start().starts_with('"') || token.trim_end().ends_with('"') {
+        return if token.trim_start().starts_with('"')
+            || token.trim_end().ends_with('"') {
             true
         } else { false };
     }
