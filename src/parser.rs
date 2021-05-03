@@ -53,8 +53,6 @@ impl EliteParser {
 
         let mut is_data_initializer = false;
 
-        let mut is_function = false;
-
         // Used by argument() and specific()
         let mut is_main_os  = true;
 
@@ -152,7 +150,6 @@ impl EliteParser {
 
                     if count_end_of_function == 0 {
                         is_main_os       = false;
-                        is_function      = false;
                     }
 
                     continue;
@@ -485,9 +482,6 @@ impl EliteParser {
             EliteASTIfFunctions::Undefined => {
                 // Syntax error (undefined function (eq, etc.)
                 false
-            },
-            _ => {
-                false
             }
         }
     }
@@ -515,13 +509,15 @@ impl EliteParser {
 
                     arguments.remove(0);
 
-                    std::process::Command::new(command)
+                    std::process::Command::new(command.clone())
                         .args(arguments)
-                        .status();
+                        .status()
+                        .expect(format!("{} command failed to execute!", command.to_owned()).as_str());
                 }
                 else {
-                    std::process::Command::new(command)
-                        .status();
+                    std::process::Command::new(command.clone())
+                        .status()
+                        .expect(format!("{} command failed to execute!", command.to_owned()).as_str());
                 }
             }
             _ => {

@@ -21,10 +21,9 @@ pub mod elite_tokenizer {
 
         let mut variable_data : String = String::new();
 
-        let mut found_data = false;
         let mut is_env     = false;
 
-        for (index, token) in temporary_tokens.iter().enumerate() {
+        for (_index, token) in temporary_tokens.iter().enumerate() {
             if is_env {
                 let environment = get_environment(&crate::ast::ast_helpers::extract_argument(
                     &token.to_string()).as_str());
@@ -52,8 +51,7 @@ pub mod elite_tokenizer {
             }
 
             if is_data(&token) {
-                found_data = true;
-                tokenized_data.push(get_data(&temporary_tokens, index));
+                tokenized_data.push(get_data(&temporary_tokens, _index));
 
                 continue;
             }
@@ -76,7 +74,7 @@ pub mod elite_tokenizer {
 
         temporary.push_str(tokens.get(n).unwrap());
 
-        for (index, token) in tokens.iter().enumerate().skip(&n + 1) {
+        for (_index, token) in tokens.iter().enumerate().skip(&n + 1) {
             if token.is_empty() { continue; }
 
             if !is_data(token) {
@@ -145,8 +143,7 @@ pub mod elite_tokenizer {
     pub fn get_environment(data: &&str) -> String {
         return match std::env::var(data) {
             Ok(__data)   => __data,
-            Err(__error) => "".to_string(),
-            _            => "".to_string()
+            Err(__error) => "".to_string()
         }
     }
 
