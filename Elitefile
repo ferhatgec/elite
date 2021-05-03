@@ -1,4 +1,4 @@
-set ProjectName as "Elitebuild"
+set ProjectName as "Elite"
 
 set COMPILER    as "gcc"
 set fn          as "for"
@@ -28,6 +28,8 @@ use add_source sources "test.cpp"
 
 // Start signal
 $fn signal "start" [
+    use append ProjectName "build"
+
     $echo "test.cpp file added: {sources}"
 
     // Do not use like this comments, Elite ignores them with warning message.

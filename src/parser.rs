@@ -71,6 +71,8 @@ impl EliteParser {
 
         let mut use_add_source_argument = String::new();
 
+        let mut use_current_function = String::new();
+
         for token in tokens {
             if token.is_empty() { continue; }
 
@@ -253,12 +255,24 @@ impl EliteParser {
                             if is_use_add_argument {
                                 let token = ast_helpers::extract_argument(&token);
 
-                                //if !std::path::Path::new(&token).exists() {
-                                    // Warning (added source file is not exists)
-                                //}
+                                match self.init_ast.match_use_functions(&use_current_function) {
+                                    EliteASTUseFunctions::AddSource => {
+                                        //if !std::path::Path::new(&token).exists() {
+                                        // Warning (added source file is not exists)
+                                        //}
 
-                                self.token_append(use_add_source_argument.clone(),
-                                                  ast_helpers::extract_argument(&token));
+                                        self.token_append(use_add_source_argument.clone(),
+                                                          ast_helpers::extract_argument(&token),
+                                                          ' ');
+                                    },
+                                    EliteASTUseFunctions::Append    => {
+                                        self.token_append(use_add_source_argument.clone(),
+                                                          ast_helpers::extract_argument(&token),
+                                                          Default::default());
+                                    }
+                                    _ => {}
+                                }
+
 
                                 is_use_add_source   = false;
                                 is_use_add_argument = false;
@@ -275,10 +289,20 @@ impl EliteParser {
                             continue;
                         }
 
-                        if self.init_ast.match_use_functions(&token) == &EliteASTUseFunctions::AddSource {
-                            is_use_add_source = true;
+                        match self.init_ast.match_use_functions(&token).clone() {
+                            EliteASTUseFunctions::AddSource |
+                            EliteASTUseFunctions::Append     => {
+                                is_use_add_source = true;
 
-                            continue;
+                                use_current_function = token.clone();
+
+                                continue;
+                            },
+                            _ => {
+                                is_use_add_source = false;
+
+                                use_current_function = token.clone();
+                            }
                         }
 
                         if is_use_argument {
@@ -548,11 +572,11 @@ impl EliteParser {
         self.init_ast.to("")
     }
 
-    pub fn token_append(&mut self, variable: String, argument: String) {
+    pub fn token_append(&mut self, variable: String, argument: String, delimiter: char) {
         for (_index, variable_list) in self.data_tree.variable_list.iter().enumerate() {
             if variable_list.__name == variable {
                 self.data_tree.variable_list[_index].__data.push_str(
-                    format!(" {}", argument).as_str());
+                    format!("{}{}", delimiter, argument).as_str());
                 return;
             }
         }

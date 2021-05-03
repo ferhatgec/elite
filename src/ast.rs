@@ -62,6 +62,7 @@ pub enum EliteASTUseFunctions {
     Signal,
     Exec,
     AddSource,
+    Append,
     Undefined
 }
 
@@ -211,6 +212,7 @@ impl EliteAST {
         self.add_use_function(self.to("signal"    ), EliteASTUseFunctions::Signal   );
         self.add_use_function(self.to("exec"      ), EliteASTUseFunctions::Exec     );
         self.add_use_function(self.to("add_source"), EliteASTUseFunctions::AddSource);
+        self.add_use_function(self.to("append"    ), EliteASTUseFunctions::Append   );
 
         self.add_use_argument(self.to("exit"     ), EliteASTUseArguments::Exit     );
     }
