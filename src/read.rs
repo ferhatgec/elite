@@ -43,7 +43,7 @@ impl EliteFileData {
     pub fn read_raw_file(&mut self, file: &String) {
         if !self.check_is_elite(file) {
             elite_logger::log(EliteLogType::Info,
-                              &"filename".to_string(),
+                              "filename",
                               &format!("to_lowercase({}) ignored", file));
         }
 

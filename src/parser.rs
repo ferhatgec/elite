@@ -6,23 +6,27 @@
 //
 
 use {
-    crate::ast::{
-        EliteKeywords,
+    crate::{
+        ast::{
+            EliteKeywords,
 
-        EliteASTForFunctions,
-        EliteASTForSpecificTargets,
+            EliteASTForFunctions,
+            EliteASTForSpecificTargets,
 
-        EliteASTIfFunctions,
+            EliteASTIfFunctions,
 
-        EliteASTUseArguments,
-        EliteASTUseFunctions,
+            EliteASTUseArguments,
+            EliteASTUseFunctions,
 
-        EliteAST,
-        EliteDataTree,
-        EliteDataInfos,
+            EliteAST,
+            EliteDataTree,
+            EliteDataInfos,
 
-        ast_helpers
-    }
+            ast_helpers
+        },
+
+        logger::*
+    },
 };
 
 pub struct EliteParser {
@@ -103,6 +107,9 @@ impl EliteParser {
                     }
 
                     // Syntax error {set}
+                    elite_logger::log(EliteLogType::Error,
+                        "set", "syntax error, \
+                            'set' keyword uninitialized, use set ... as \"...\" structure");
                 },
                 EliteKeywords::For => {
                     is_for = true;
@@ -141,6 +148,12 @@ impl EliteParser {
                     continue;
                 },
                 EliteKeywords::RightSqBracket  => {
+                    if count_end_of_function == 0 {
+                        elite_logger::log(EliteLogType::Error,
+                                          "right-sq-bracket",
+                                          "unmatched bracket");
+                    }
+
                     if is_main_os {
                         count_end_of_function -= 1;
                     }
@@ -221,7 +234,10 @@ impl EliteParser {
                                                                             crate::ast::ast_helpers::extract_argument(&second_if_argument.clone()));
                                 },
                                 _ => {
-                                    // Syntax error
+                                    elite_logger::log(EliteLogType::Error,
+                                                      &token,
+                                                      "syntax error, \
+                                                        undefined if function");
                                 }
                             }
 
@@ -241,6 +257,10 @@ impl EliteParser {
 
                             variable_name   = token.clone();
                         }
+                        else {
+                            elite_logger::log(EliteLogType::Error,
+                                        &token, "syntax error, undefined if function");
+                        }
 
                         continue;
                     }
@@ -254,9 +274,10 @@ impl EliteParser {
 
                                 match self.init_ast.match_use_functions(&use_current_function) {
                                     EliteASTUseFunctions::AddSource => {
-                                        //if !std::path::Path::new(&token).exists() {
-                                        // Warning (added source file is not exists)
-                                        //}
+                                        if !std::path::Path::new(&token).exists() {
+                                            elite_logger::log(EliteLogType::Warning,
+                                                              &token,  "source file is not exist");
+                                        }
 
                                         self.token_append(use_add_source_argument.clone(),
                                                           ast_helpers::extract_argument(&token),
@@ -422,7 +443,9 @@ impl EliteParser {
                 self.is_exists(&argument)
             },
             _ => {
-                // Syntax error (undefined function)
+                elite_logger::log(EliteLogType::Error,
+                                  &function,
+                                  "syntax error, undefined for function");
                 false
             }
         }
@@ -461,12 +484,14 @@ impl EliteParser {
             //
             // },
             EliteASTForSpecificTargets::Undefined => {
+                elite_logger::log(EliteLogType::Error,
+                                  &target,
+                                  "undefined os target");
+
                 false
             },
             _ => {
                 return self.is_same(&target);
-
-                // println!("Undefined target {}", &target);
             }
         }
     }
@@ -480,7 +505,6 @@ impl EliteParser {
                 self.is_not_same_argument(&argument_1, &argument_2)
             },
             EliteASTIfFunctions::Undefined => {
-                // Syntax error (undefined function (eq, etc.)
                 false
             }
         }
@@ -521,7 +545,9 @@ impl EliteParser {
                 }
             }
             _ => {
-                // Syntax error (Undefined function except add_source)
+                elite_logger::log(EliteLogType::Error,
+                                  &function,
+                                  "syntax error, undefined use function");
             }
         }
     }
@@ -532,7 +558,11 @@ impl EliteParser {
                 std::process::exit(0);
             },
             _ => {
-                // Syntax error (undefined argument)
+                if argument != "start" {
+                    elite_logger::log(EliteLogType::Error,
+                                      &format!("{}", argument),
+                                      "syntax error, undefined use function");
+                }
             }
         }
     }

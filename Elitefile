@@ -16,7 +16,6 @@ set COMPILER_PATH as "/usr/bin/{COMPILER}"
 set sources as "example.cpp"
 use add_source sources "test.cpp"
 
-
 \\set arguments as string (
 \\    "example.cpp",
 \\    "main.cpp"

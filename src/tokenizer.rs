@@ -134,8 +134,8 @@ pub mod elite_tokenizer {
         }
         else if token.starts_with('/') && token.chars().nth(1).unwrap() == '/' {
             elite_logger::log(EliteLogType::Warning,
-                              &"comment".to_string(),
-                              &"do not use '\x1b[1;97m//\x1b[0m' as comment, ignored.".to_string());
+                              "comment",
+                              "do not use '\x1b[1;97m//\x1b[0m' as comment, ignored.");
 
             true
         }
