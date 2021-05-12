@@ -1,4 +1,7 @@
+![Elitebuild :)](resources/Elitebuild_Banner.png)
+
 # Fegeya Elitebuild
-## Fegeya Elitebuild, small, powerful build system. Written in Rust.
+
+## Small, powerful build system. Written in Rust.
 
 ### Elitebuild licensed under the terms of MIT License.
