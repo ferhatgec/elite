@@ -190,6 +190,8 @@ impl EliteParser {
 
                                     __data.push_str(self.token_get(__format.clone()).as_str());
 
+                                    __format.clear();
+
                                     continue;
                                 }
 
