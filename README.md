@@ -2,10 +2,11 @@
 
 # Fegeya Elitebuild
 
-## Small, powerful build system. Written in Rust.
+## Small, powerful, work-in-progress build system. Written in Rust.
 
 ### Features:
  * No functions (all are built-ins)
+ * All variables are global
  * Cross-platform (say 'thank you' to rust's standard lib)
  * Different syntax.
  * Preprocessor.
@@ -56,6 +57,6 @@ for signal "start" [
 ```
 
 ### Other implementations?
-  * [For C++ as ElitedotC++](https://github.com/ferhatgec/elite-cpp)
+  * [For C++ as ElitedotC++](https://github.com/ferhatgec/elite.cpp)
 
 ### Elitebuild licensed under the terms of MIT License.
