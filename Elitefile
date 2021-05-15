@@ -58,6 +58,7 @@ $fn signal "start" [
     ]
 
     if uneq "{HOME}" env "PWD" [
+        println "Current directory isn't {HOME}!"
         print   "Current dir is: " println env "PWD"
     ]
 
