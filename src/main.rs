@@ -12,6 +12,12 @@ mod tokenizer;
 mod ast;
 mod logger;
 
+pub static VERSION: f32 = 0.1;
+
+pub static VALID_VERSIONS: &'static [f32] = &[
+    0.1
+];
+
 fn main() {
     let cli_arguments: Vec<_> = std::env::args().collect();
 

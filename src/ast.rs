@@ -16,6 +16,7 @@ pub enum EliteKeywords {
     Println,
     Use,
     If,
+    RequiredVersion,
 
     LeftParenthese,
     RightParenthese,
@@ -74,11 +75,13 @@ pub enum EliteASTUseArguments {
 pub struct EliteAST {
     pub ast_set                    : String,
     pub ast_as                     : String,
+    pub ast_is                     : String,
     pub ast_for                    : String,
     pub ast_print                  : String,
     pub ast_println                : String,
     pub ast_use                    : String,
     pub ast_if                     : String,
+    pub ast_required_version       : String,
 
     pub ast_left_parenthese        : String,
     pub ast_right_parenthese       : String,
@@ -151,17 +154,19 @@ impl EliteAST {
     pub fn init_keywords(&mut self) {
         self.ast_set                 = self.to("set"             );
         self.ast_as                  = self.to("as"              );
+        self.ast_is                  = self.to("is"              );
         self.ast_for                 = self.to("for"             );
         self.ast_print               = self.to("print"           );
-        self.ast_println             = format!("{}ln", self.ast_print);
+        self.ast_println             = format!("{}ln", self.ast_print );
         self.ast_use                 = self.to("use"             );
         self.ast_if                  = self.to("if"              );
+        self.ast_required_version    = self.to("required_version");
 
         self.ast_left_parenthese     = self.to("("               );
         self.ast_right_parenthese    = self.to(")"               );
 
         self.ast_square_left_bracket = self.to("["               );
-        self.ast_square_right_bracket= self.to("]"              );
+        self.ast_square_right_bracket= self.to("]"               );
 
         self.ast_for_functions_arguments = vec![
             self.to("start")
@@ -177,12 +182,20 @@ impl EliteAST {
         ];
 
         self.add_token(self.ast_set.clone    (), EliteKeywords::Set    );
+
+        // 'as' & 'is' keywords are same however,
+        // 'is' mostly using by 'required_version' to declare required version,
+        // 'as' mostly using by 'set' to variable data declaration.
         self.add_token(self.ast_as.clone     (), EliteKeywords::As     );
+        self.add_token(self.ast_is.clone     (), EliteKeywords::As     );
         self.add_token(self.ast_for.clone    (), EliteKeywords::For    );
         self.add_token(self.ast_print.clone  (), EliteKeywords::Print  );
         self.add_token(self.ast_println.clone(), EliteKeywords::Println);
         self.add_token(self.ast_use.clone    (), EliteKeywords::Use    );
         self.add_token(self.ast_if.clone     (), EliteKeywords::If     );
+        self.add_token(self.ast_required_version
+                                             .clone(),EliteKeywords::
+                                                                       RequiredVersion);
 
         self.add_token(self.ast_left_parenthese.clone(), EliteKeywords::LeftParenthese  );
         self.add_token(self.ast_right_parenthese.clone(), EliteKeywords::RightParenthese);

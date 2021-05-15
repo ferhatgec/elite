@@ -28,6 +28,7 @@ use {
         logger::*
     },
 };
+use crate::{VERSION, VALID_VERSIONS};
 
 pub struct EliteParser {
     pub(crate) init_ast : EliteAST,
@@ -36,44 +37,47 @@ pub struct EliteParser {
 
 impl EliteParser {
     pub fn parse_tokens(&mut self, tokens: &Vec<String>) {
-        let mut __matched_type           = EliteKeywords::Undefined;
+        let mut __matched_type           = EliteKeywords       ::Undefined;
         let mut last_matched_function    = EliteASTForFunctions::Undefined;
-        let mut last_matched_if_function = EliteASTIfFunctions::Undefined;
+        let mut last_matched_if_function = EliteASTIfFunctions ::Undefined;
 
-        let mut is_variable = false;
-        let mut is_defined  = false;
+        let mut is_variable                     = false;
+        let mut is_defined                      = false;
 
-        let mut is_for         = false;
-        let mut is_for_argument= false;
+        let mut is_for                          = false;
+        let mut is_for_argument                 = false;
 
-        let mut is_if          = false;
-        let mut is_if_function = false;
+        let mut is_if                           = false;
+        let mut is_if_function                  = false;
 
-        let mut is_print   = false;
-        let mut is_newline = false;
+        let mut is_print                        = false;
+        let mut is_newline                      = false;
 
-        let mut is_use = false;
-        let mut is_use_argument = false;
+        let mut is_use                          = false;
+        let mut is_use_argument                 = false;
 
-        let mut is_data_initializer = false;
+        let mut is_required_version             = false;
+        let mut is_required_version_initializer = false;
+
+        let mut is_data_initializer             = false;
 
         // Used by argument() and specific()
-        let mut is_main_os  = true;
+        let mut is_main_os                      = true ;
 
-        let mut is_use_add_source   = false;
-        let mut is_use_add_argument = false;
+        let mut is_use_add_source               = false;
+        let mut is_use_add_argument             = false;
 
-        let mut count_end_of_function: u32 = 0;
+        let mut count_end_of_function: u32            = 0    ;
 
-        let mut variable_name = String::new();
-        let mut variable_data = String::new();
+        let mut variable_name                  = String::new();
+        let mut variable_data                  = String::new();
 
-        let mut first_if_argument = String::new();
-        let mut second_if_argument= String::new();
+        let mut first_if_argument              = String::new();
+        let mut second_if_argument             = String::new();
 
-        let mut use_add_source_argument = String::new();
+        let mut use_add_source_argument        = String::new();
 
-        let mut use_current_function = String::new();
+        let mut use_current_function           = String::new();
 
         for token in tokens {
             if token.is_empty() { continue; }
@@ -101,15 +105,24 @@ impl EliteParser {
                 },
                 EliteKeywords::As => {
                     if is_variable {
-                        is_data_initializer = true;
+                        is_data_initializer             = true;
 
                         continue;
                     }
+                    else if is_required_version {
+                        is_required_version_initializer = true;
 
-                    // Syntax error {set}
-                    elite_logger::log(EliteLogType::Error,
-                        "set", "syntax error, \
-                            'set' keyword uninitialized, use set ... as \"...\" structure");
+                        continue;
+                    }
+                    else {
+                        // Syntax error {set}
+                        elite_logger::log(EliteLogType::Error,
+                                          "set",
+                                          &*format!(
+                                              "syntax error, 'set' keyword uninitialized, \
+                                              found '{}'. use set ... as \"...\" structure",
+                                                    token));
+                    }
                 },
                 EliteKeywords::For => {
                     is_for = true;
@@ -137,9 +150,16 @@ impl EliteParser {
 
                     continue;
                 },
+                EliteKeywords::RequiredVersion => {
+                    is_required_version = true;
+
+                    continue;
+                },
+
                 // Ignoring them.
                 EliteKeywords::LeftParenthese |
                 EliteKeywords::RightParenthese => {},
+
                 EliteKeywords::LeftSqBracket   => {
                     if is_main_os  {
                         count_end_of_function += 1;
@@ -408,9 +428,56 @@ impl EliteParser {
                         continue;
                     }
 
+                    if is_required_version {
+                        if is_required_version_initializer {
+                            if crate::tokenizer::elite_tokenizer::is_data(&token.as_str()) {
+                                elite_logger::log(EliteLogType::Error,
+                                                  "string_notation", &*format!(
+                                                      "required_version must be used with \
+                                                      float literal, \
+                                                      not string. \
+                                                      use {} instead of \"{data}\"",
+                                                            data = ast_helpers::extract_argument(&token)));
+                            }
+
+                            is_required_version             = false;
+                            is_required_version_initializer = false;
+
+                            let version       = token.parse::<f32>().unwrap();
+                            let mut is_valid = false;
+
+                            for __version in VALID_VERSIONS {
+                                // Valid version
+                                if __version == &version {
+                                    if version > VERSION {
+                                        elite_logger::log(EliteLogType::Info,
+                                                          "required_version",
+                                                          &*format!("required {} or latest version",
+                                                                    token));
+
+                                        std::process::exit(1);
+                                    }
+
+                                    is_valid = true;
+
+                                    break;
+                                }
+                            }
+
+                            if !is_valid {
+                                elite_logger::log(EliteLogType::Error,
+                                                  "invalid_version",
+                                                  &*format!("invalid version: {}, \
+                                                        for latest valid version: {}",
+                                                            version,
+                                                            VALID_VERSIONS.last().unwrap()));
+                            }
+                        }
+                    }
+
                     if is_variable {
                         if is_data_initializer {
-                            is_variable = false;
+                            is_variable         = false;
                             is_data_initializer = false;
 
                             self.token_set(variable_name.clone(),

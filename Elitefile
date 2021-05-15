@@ -1,3 +1,5 @@
+required_version is 0.1
+
 set ProjectName as "Elite"
 
 set COMPILER    as "gcc"
@@ -56,8 +58,7 @@ $fn signal "start" [
     ]
 
     if uneq "{HOME}" env "PWD" [
-        println "Current directory is not {HOME}!"
-        print   "Current dir is " println env "PWD"
+        print   "Current dir is: " println env "PWD"
     ]
 
     \\ You can also use $ProjectName instead of formatter

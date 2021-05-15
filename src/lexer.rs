@@ -14,12 +14,14 @@ pub mod elite_lexer {
         let mut init_ast = crate::ast::EliteAST {
             ast_set                    : "".to_string(),
             ast_as                     : "".to_string(),
+            ast_is                     : "".to_string(),
             ast_for                    : "".to_string(),
             ast_print                  : "".to_string(),
             ast_println                : "".to_string(),
 
             ast_use                    : "".to_string(),
             ast_if                     : "".to_string(),
+            ast_required_version       : "".to_string(),
             ast_left_parenthese        : "".to_string(),
             ast_right_parenthese       : "".to_string(),
 
