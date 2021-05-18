@@ -24,6 +24,7 @@ pub mod elite_tokenizer {
         let mut variable_data : String = String::new();
 
         let mut is_env     = false;
+        let mut is_link    = false;
 
         for (_index, token) in temporary_tokens.iter().enumerate() {
             if is_env {
@@ -47,8 +48,22 @@ pub mod elite_tokenizer {
                 continue
             }
 
-            if is_env_token(&token) {
+            if is_link {
+                tokenized_data.push(format!("-l{}",
+                                            &crate::ast::ast_helpers::extract_argument(&token.to_string())));
+
+                is_link= false;
+
+                continue;
+            }
+
+            if is_preprocessor_token(&token, "env") {
                 is_env = true;
+                continue;
+            }
+
+            if is_preprocessor_token(&token, "link") {
+                is_link= true;
                 continue;
             }
 
@@ -118,8 +133,8 @@ pub mod elite_tokenizer {
         } else { false };
     }
 
-    pub fn is_env_token(token: &&str) -> bool {
-        return if token == &"env" {
+    pub fn is_preprocessor_token(token: &&str, what: &str) -> bool {
+        return if token == &what {
             true
         } else { false };
     }

@@ -109,19 +109,11 @@ impl EliteParser {
 
                         continue;
                     }
-                    else if is_required_version {
+
+                    if is_required_version {
                         is_required_version_initializer = true;
 
                         continue;
-                    }
-                    else {
-                        // Syntax error {set}
-                        elite_logger::log(EliteLogType::Error,
-                                          "set",
-                                          &*format!(
-                                              "syntax error, 'set' keyword uninitialized, \
-                                              found '{}'. use set ... as \"...\" structure",
-                                                    token));
                     }
                 },
                 EliteKeywords::For => {
