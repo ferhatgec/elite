@@ -25,8 +25,11 @@ pub mod elite_tokenizer {
 
         let mut is_env     = false;
         let mut is_link    = false;
+        let mut is_std     = false;
 
         for (_index, token) in temporary_tokens.iter().enumerate() {
+            if token.is_empty() { continue; }
+
             if is_env {
                 let environment = get_environment(&crate::ast::ast_helpers::extract_argument(
                     &token.to_string()).as_str());
@@ -52,19 +55,26 @@ pub mod elite_tokenizer {
                 tokenized_data.push(format!("-l{}",
                                             &crate::ast::ast_helpers::extract_argument(&token.to_string())));
 
-                is_link= false;
+                is_link= false; continue;
+            }
 
-                continue;
+            if is_std {
+                tokenized_data.push(format!("-std={}",
+                                            &crate::ast::ast_helpers::extract_argument(&token.to_string())));
+
+                is_std = false; continue;
             }
 
             if is_preprocessor_token(&token, "env") {
-                is_env = true;
-                continue;
+                is_env = true; continue;
             }
 
             if is_preprocessor_token(&token, "link") {
-                is_link= true;
-                continue;
+                is_link= true; continue;
+            }
+
+            if is_preprocessor_token(&token, "std") {
+                is_std = true; continue;
             }
 
             if is_data(&token) {

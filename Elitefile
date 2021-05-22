@@ -15,7 +15,8 @@ set HOME        as env "HOME"
 
 set COMPILER_PATH as "/usr/bin/{COMPILER}"
 
-set LINKS as link "stdc++fs"
+set LINKS    as link "stdc++fs"
+set STANDARD as std  "c++17"
 
 set sources as "example.cpp"
 use add_source sources "test.cpp"
@@ -69,7 +70,7 @@ $fn signal "start" [
     \\ Platform-specific functions.
     $fn specific "{Linux}"   [
         for exists "{COMPILER_PATH}" [
-            println "Compiler path found: {COMPILER_PATH} {LINKS}"
+            println "Compiler path found: {COMPILER_PATH} {LINKS} {STANDARD}"
         ]
 
         println "Linux-based"
