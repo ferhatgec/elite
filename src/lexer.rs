@@ -11,35 +11,7 @@ pub mod elite_lexer {
     pub fn init_lexer(init: &crate::read::EliteFileData) {
         let tokens = crate::tokenizer::elite_tokenizer::tokenize_first(init);
 
-        let mut init_ast = crate::ast::EliteAST {
-            ast_set                    : "".to_string(),
-            ast_as                     : "".to_string(),
-            ast_is                     : "".to_string(),
-            ast_for                    : "".to_string(),
-            ast_print                  : "".to_string(),
-            ast_println                : "".to_string(),
-
-            ast_use                    : "".to_string(),
-            ast_if                     : "".to_string(),
-            ast_required_version       : "".to_string(),
-            ast_left_parenthese        : "".to_string(),
-            ast_right_parenthese       : "".to_string(),
-
-            ast_square_left_bracket    : "".to_string(),
-            ast_square_right_bracket   : "".to_string(),
-
-            ast_for_use                : vec![],
-
-            ast_for_functions_arguments: vec![],
-            ast_for_use_arguments      : vec![],
-
-            syntax_list                : Default::default(),
-            ast_for_functions          : Default::default(),
-            ast_for_specific_targets   : Default::default(),
-            ast_if_functions           : Default::default(),
-            ast_use_functions          : Default::default(),
-            ast_use_list               : Default::default()
-        };
+        let mut init_ast = crate::ast::EliteAST::default();
 
         init_ast.init_keywords();
 

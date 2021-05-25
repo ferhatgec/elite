@@ -159,6 +159,40 @@ pub mod ast_helpers {
     }
 }
 
+impl Default for EliteAST {
+    fn default() -> Self {
+        EliteAST {
+            ast_set                    : "".to_string(),
+            ast_as                     : "".to_string(),
+            ast_is                     : "".to_string(),
+            ast_for                    : "".to_string(),
+            ast_print                  : "".to_string(),
+            ast_println                : "".to_string(),
+
+            ast_use                    : "".to_string(),
+            ast_if                     : "".to_string(),
+            ast_required_version       : "".to_string(),
+            ast_left_parenthese        : "".to_string(),
+            ast_right_parenthese       : "".to_string(),
+
+            ast_square_left_bracket    : "".to_string(),
+            ast_square_right_bracket   : "".to_string(),
+
+            ast_for_use                : vec![],
+
+            ast_for_functions_arguments: vec![],
+            ast_for_use_arguments      : vec![],
+
+            syntax_list                : Default::default(),
+            ast_for_functions          : Default::default(),
+            ast_for_specific_targets   : Default::default(),
+            ast_if_functions           : Default::default(),
+            ast_use_functions          : Default::default(),
+            ast_use_list               : Default::default()
+        }
+    }
+}
+
 impl EliteAST {
     pub fn init_keywords(&mut self) {
         self.ast_set                 = self.to("set"             );
