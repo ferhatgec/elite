@@ -371,7 +371,8 @@ impl EliteParser {
 
                     // Built-in regular print function.
                     if is_print {
-                        print!("{}", ast_helpers::extract_argument(&token));
+                        print!("{}",
+                               ast_helpers::extract_argument(&ast_helpers::extract_argument(&token)));
 
                         is_print = false;
 
@@ -684,7 +685,7 @@ impl EliteParser {
     }
 
     pub fn is_same(&self, target: &String) -> bool {
-        return if std::env::consts::OS == target {
+        return if std::env::consts::OS == target || std::env::consts::ARCH == target {
             true
         } else { false };
     }

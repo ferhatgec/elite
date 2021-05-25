@@ -48,6 +48,15 @@ pub enum EliteASTForSpecificTargets {
     Bitrig,
     OpenBSD,
     NetBSD,
+
+    x86,
+    x86_64,
+    Mips,
+    PowerPc,
+    PowerPc64,
+    Arm,
+    AArch64,
+
     Undefined
 }
 
@@ -218,6 +227,14 @@ impl EliteAST {
         self.add_for_specific_target(self.to("bitrig"   ), EliteASTForSpecificTargets::Bitrig   );
         self.add_for_specific_target(self.to("openbsd"  ), EliteASTForSpecificTargets::OpenBSD  );
         self.add_for_specific_target(self.to("netbsd"   ), EliteASTForSpecificTargets::NetBSD   );
+
+        self.add_for_specific_target(self.to("x86"      ), EliteASTForSpecificTargets::x86      );
+        self.add_for_specific_target(self.to("x86_64"   ), EliteASTForSpecificTargets::x86_64   );
+        self.add_for_specific_target(self.to("mips"     ), EliteASTForSpecificTargets::Mips     );
+        self.add_for_specific_target(self.to("powerpc"  ), EliteASTForSpecificTargets::PowerPc  );
+        self.add_for_specific_target(self.to("powerpc64"), EliteASTForSpecificTargets::PowerPc64);
+        self.add_for_specific_target(self.to("arm"      ), EliteASTForSpecificTargets::Arm      );
+        self.add_for_specific_target(self.to("aarch64"  ), EliteASTForSpecificTargets::AArch64  );
 
         self.add_if_function        (self.to("eq"      ), EliteASTIfFunctions::Eq  );
         self.add_if_function        (self.to("uneq"    ), EliteASTIfFunctions::UnEq);
