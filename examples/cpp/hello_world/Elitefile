@@ -2,8 +2,8 @@ set BIN_PATH      as "/usr/bin/"
 set COMPILER      as "g++"
 set COMPILER_PATH as "{BIN_PATH}{COMPILER}"
 
-set SOURCE_FILE   as "example.cpp"
-set OUTPUT        as "example"
+set SOURCE_FILE   as         "example.cpp"
+set OUTPUT        as outfile "example"
 
 for signal "start" [
     for exists "{BIN_PATH}clang++" [
@@ -27,7 +27,7 @@ for signal "start" [
     ]
 
     for argument "build" [
-        use exec "{COMPILER} {SOURCE_FILE} -o {OUTPUT}"
+        use exec "{COMPILER} {SOURCE_FILE} {OUTPUT}"
 
         for exists $OUTPUT [
             println "Build succeeded"
