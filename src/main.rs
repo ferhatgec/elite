@@ -4,19 +4,9 @@
 // Distributed under the terms of the MIT License.
 //
 //
+extern crate elite;
 
-mod parser;
-mod read;
-mod lexer;
-mod tokenizer;
-mod ast;
-mod logger;
-
-pub static VERSION: f32 = 0.1;
-
-pub static VALID_VERSIONS: &'static [f32] = &[
-    0.1
-];
+use elite::*;
 
 fn main() {
     let cli_arguments: Vec<_> = std::env::args().collect();

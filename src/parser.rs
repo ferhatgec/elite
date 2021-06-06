@@ -4,7 +4,6 @@
 // Distributed under the terms of the MIT License.
 //
 //
-
 use {
     crate::{
         ast::{
@@ -25,10 +24,13 @@ use {
             ast_helpers
         },
 
-        logger::*
+        logger::{*},
+
+        VALID_VERSIONS,
+        VERSION
     },
 };
-use crate::{VERSION, VALID_VERSIONS};
+
 
 pub struct EliteParser {
     pub(crate) init_ast : EliteAST,
