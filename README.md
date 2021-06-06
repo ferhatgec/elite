@@ -58,5 +58,6 @@ for signal "start" [
 
 ### Other implementations?
   * [For C++ as ElitedotC++](https://github.com/ferhatgec/elite.cpp)
+  * [Gretea's Runtime uses Elite](https://github.com/ferhatgec/gretea)
 
 ### Elitebuild licensed under the terms of MIT License.
