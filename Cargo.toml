@@ -3,7 +3,17 @@ name = "elite"
 version = "0.1.0"
 authors = ["\"ferhatgec\""]
 edition = "2018"
+description = "New generation, simple & clean build system."
+keywords = ["rust", "term", "build", "system", "ast"]
+readme = "README.md"
+repository = "https://github.com/ferhatgec/elite"
+documentation = "https://docs.rs/elite"
+license = "MIT"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
-[dependencies]
+include = [
+    ".gitignore",
+    "Cargo.toml",
+    "src/*.rs",
+    "examples",
+    "resource"
+]
