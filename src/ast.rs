@@ -17,6 +17,7 @@ pub enum EliteKeywords {
     Use,
     If,
     RequiredVersion,
+    Suppress,
 
     LeftParenthese,
     RightParenthese,
@@ -91,6 +92,7 @@ pub struct EliteAST {
     pub ast_use                    : String,
     pub ast_if                     : String,
     pub ast_required_version       : String,
+    pub ast_suppress               : String,
 
     pub ast_left_parenthese        : String,
     pub ast_right_parenthese       : String,
@@ -172,6 +174,8 @@ impl Default for EliteAST {
             ast_use                    : "".to_string(),
             ast_if                     : "".to_string(),
             ast_required_version       : "".to_string(),
+            ast_suppress               : "".to_string(),
+
             ast_left_parenthese        : "".to_string(),
             ast_right_parenthese       : "".to_string(),
 
@@ -204,6 +208,7 @@ impl EliteAST {
         self.ast_use                 = self.to("use"             );
         self.ast_if                  = self.to("if"              );
         self.ast_required_version    = self.to("required_version");
+        self.ast_suppress            = self.to("suppress"        );
 
         self.ast_left_parenthese     = self.to("("               );
         self.ast_right_parenthese    = self.to(")"               );
@@ -239,6 +244,9 @@ impl EliteAST {
         self.add_token(self.ast_required_version
                                              .clone(),EliteKeywords::
                                                                        RequiredVersion);
+        self.add_token(self.ast_suppress
+                                             .clone(), EliteKeywords::
+                                                                       Suppress       );
 
         self.add_token(self.ast_left_parenthese.clone(), EliteKeywords::LeftParenthese  );
         self.add_token(self.ast_right_parenthese.clone(), EliteKeywords::RightParenthese);

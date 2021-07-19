@@ -61,6 +61,8 @@ impl EliteParser {
         let mut is_required_version             = false;
         let mut is_required_version_initializer = false;
 
+        let mut is_suppress                     = false;
+
         let mut is_data_initializer             = false;
 
         // Used by argument() and specific()
@@ -102,8 +104,6 @@ impl EliteParser {
             match __matched_type {
                 EliteKeywords::Set => {
                     is_variable = true;
-
-                    continue;
                 },
                 EliteKeywords::As => {
                     if is_variable {
@@ -114,40 +114,29 @@ impl EliteParser {
 
                     if is_required_version {
                         is_required_version_initializer = true;
-
-                        continue;
                     }
                 },
                 EliteKeywords::For => {
                     is_for = true;
-
-                    continue;
                 },
                 EliteKeywords::Print => {
                     is_print = true;
-
-                    continue;
                 },
                 EliteKeywords::Println => {
                     is_print = true;
                     is_newline = true;
-
-                    continue;
                 },
                 EliteKeywords::Use => {
                     is_use = true;
-
-                    continue;
                 },
                 EliteKeywords::If  => {
                     is_if = true;
-
-                    continue;
                 },
                 EliteKeywords::RequiredVersion => {
                     is_required_version = true;
-
-                    continue;
+                },
+                EliteKeywords::Suppress => {
+                    is_suppress = true;
                 },
 
                 // Ignoring them.
@@ -178,8 +167,6 @@ impl EliteParser {
                     if count_end_of_function == 0 {
                         is_main_os       = false;
                     }
-
-                    continue;
                 },
                 _ => {
                     if !is_main_os {
@@ -352,8 +339,9 @@ impl EliteParser {
 
 
                             self.ast_parse_use_function(variable_data.clone(),
-                                                        ast_helpers::extract_argument(token));
-
+                                                        ast_helpers::extract_argument(token),
+                                                        is_suppress);
+                            if is_suppress { is_suppress = false; }
 
                             is_use = false;
                             is_use_argument = false;
@@ -373,17 +361,22 @@ impl EliteParser {
 
                     // Built-in regular print function.
                     if is_print {
-                        print!("{}",
-                               ast_helpers::extract_argument(&ast_helpers::extract_argument(&token)));
+                        if !is_suppress {
+                            print!("{}",
+                                   ast_helpers::extract_argument(&ast_helpers::extract_argument(&token)));
+                        }
 
                         is_print = false;
 
                         if is_newline {
-                            println!();
+                            if !is_suppress {
+                                println!();
+                            }
 
                             is_newline = false;
                         }
 
+                        is_suppress = false;
                         continue;
                     }
 
@@ -574,7 +567,7 @@ impl EliteParser {
         }
     }
 
-    pub fn ast_parse_use_function(&mut self, function: String, argument: String) {
+    pub fn ast_parse_use_function(&mut self, function: String, argument: String, suppress: bool) {
         match self.init_ast.match_use_functions(&function) {
             EliteASTUseFunctions::Signal => {
                 self.ast_parse_use(argument);
@@ -597,15 +590,25 @@ impl EliteParser {
 
                     arguments.remove(0);
 
-                    std::process::Command::new(command.clone())
-                        .args(arguments)
-                        .status()
-                        .expect(format!("{} command failed to execute!", command.to_owned()).as_str());
+                    let mut syscall = std::process::Command::new(command.clone());
+                    syscall.args(arguments);
+
+                    if !suppress {
+                        syscall.status()
+                            .expect(format!("{} command failed to execute!", command.to_owned()).as_str());
+                    } else {
+                        match syscall.output() { _ => {} }
+                    }
                 }
                 else {
-                    std::process::Command::new(command.clone())
-                        .status()
-                        .expect(format!("{} command failed to execute!", command.to_owned()).as_str());
+                    let mut syscall = std::process::Command::new(command.clone());
+
+                    if !suppress {
+                        syscall.status()
+                            .expect(format!("{} command failed to execute!", command.to_owned()).as_str());
+                    } else {
+                        match syscall.output() { _ => {} }
+                    }
                 }
             }
             _ => {

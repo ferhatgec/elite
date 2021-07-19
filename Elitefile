@@ -51,6 +51,10 @@ $fn signal "start" [
 
     println "Default compiler is: {COMPILER}"
 
+    println suppress "Suppressed stdout."
+
+    use exec suppress "echo Suppressed syscall"
+
     set echo as "print"
 
     $echo "Huh!"
