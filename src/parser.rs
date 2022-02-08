@@ -33,9 +33,9 @@ use {
 
 
 pub struct EliteParser {
-    pub(crate) init_ast : EliteAST,
-    pub(crate) data_tree: EliteDataTree,
-    pub(crate) just_ct  : bool,
+    pub init_ast : EliteAST,
+    pub data_tree: EliteDataTree,
+    pub just_ct  : bool,
 }
 
 impl EliteParser {
