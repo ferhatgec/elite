@@ -34,7 +34,8 @@ use {
 
 pub struct EliteParser {
     pub(crate) init_ast : EliteAST,
-    pub(crate) data_tree: EliteDataTree
+    pub(crate) data_tree: EliteDataTree,
+    pub(crate) just_ct  : bool,
 }
 
 impl EliteParser {
@@ -362,15 +363,19 @@ impl EliteParser {
                     // Built-in regular print function.
                     if is_print {
                         if !is_suppress {
-                            print!("{}",
-                                   ast_helpers::extract_argument(&ast_helpers::extract_argument(&token)));
+                            if !self.just_ct {
+                                print!("{}",
+                                       ast_helpers::extract_argument(&ast_helpers::extract_argument(&token)));
+                            }
                         }
 
                         is_print = false;
 
                         if is_newline {
                             if !is_suppress {
-                                println!();
+                                if !self.just_ct {
+                                    println!();
+                                }
                             }
 
                             is_newline = false;
@@ -594,8 +599,10 @@ impl EliteParser {
                     syscall.args(arguments);
 
                     if !suppress {
-                        syscall.status()
-                            .expect(format!("{} command failed to execute!", command.to_owned()).as_str());
+                        if !self.just_ct {
+                            syscall.status()
+                                .expect(format!("{} command failed to execute!", command.to_owned()).as_str());
+                        }
                     } else {
                         match syscall.output() { _ => {} }
                     }
@@ -604,8 +611,10 @@ impl EliteParser {
                     let mut syscall = std::process::Command::new(command.clone());
 
                     if !suppress {
-                        syscall.status()
-                            .expect(format!("{} command failed to execute!", command.to_owned()).as_str());
+                        if !self.just_ct {
+                            syscall.status()
+                                .expect(format!("{} command failed to execute!", command.to_owned()).as_str());
+                        }
                     } else {
                         match syscall.output() { _ => {} }
                     }

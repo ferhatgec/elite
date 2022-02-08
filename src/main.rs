@@ -8,11 +8,18 @@ extern crate elite;
 
 use elite::*;
 
+const __VERSION__: Option<&str> = option_env!("CARGO_PKG_VERSION");
+
 fn main() {
     let cli_arguments: Vec<_> = std::env::args().collect();
 
     if cli_arguments.len() < 2 {
-        println!("Fegeya Elite - small, powerful build system");
+        println!("Fegeya Elite - small, powerful build system (version: {})\n\
+                -------\n\
+                Usage:\n \
+                {arg} file argument\n \
+                {arg} Elitefile install", __VERSION__.unwrap_or("undefined"),
+                                          arg = cli_arguments[0]);
 
         std::process::exit(1);
     }
@@ -23,5 +30,5 @@ fn main() {
     };
 
     elite_read.read_raw_file(cli_arguments.get(1).unwrap());
-    crate::lexer::elite_lexer::init_lexer(&elite_read);
+    crate::lexer::elite_lexer::init_lexer(&elite_read, false);
 }

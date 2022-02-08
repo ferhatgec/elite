@@ -1,6 +1,6 @@
 [package]
 name = "elite"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["\"ferhatgec\""]
 edition = "2018"
 description = "New generation, simple & clean build system."

@@ -8,7 +8,7 @@
 pub mod elite_lexer {
     use crate::ast::EliteDataTree;
 
-    pub fn init_lexer(init: &crate::read::EliteFileData) {
+    pub fn init_lexer(init: &crate::read::EliteFileData, just_create_tree: bool) -> crate::parser::EliteParser {
         let tokens = crate::tokenizer::elite_tokenizer::tokenize_first(init);
 
         let mut init_ast = crate::ast::EliteAST::default();
@@ -17,7 +17,8 @@ pub mod elite_lexer {
 
         let mut init_parser = crate::parser::EliteParser {
             init_ast : init_ast,
-            data_tree: EliteDataTree { variable_list: Default::default() }
+            data_tree: EliteDataTree { variable_list: Default::default() },
+            just_ct  : just_create_tree
         };
 
         init_parser.parse_tokens(&tokens);
@@ -27,5 +28,7 @@ pub mod elite_lexer {
         //
         //    println!("<{}>", token);
         //}
+
+        init_parser
     }
 }
