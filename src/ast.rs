@@ -5,9 +5,13 @@
 //
 //
 
-use std::collections::HashMap;
+use {
+    std::collections::HashMap,
+    crate::ast::EliteKeywords::{*}
+};
 
-#[derive(Copy, Clone, PartialEq)]
+#[derive(Copy, Clone, PartialEq, Debug)]
+#[allow(non_camel_case_types)]
 pub enum EliteKeywords {
     Set,
     As,
@@ -18,6 +22,9 @@ pub enum EliteKeywords {
     If,
     RequiredVersion,
     Suppress,
+    Change,
+
+    IfArg,
 
     LeftParenthese,
     RightParenthese,
@@ -25,20 +32,6 @@ pub enum EliteKeywords {
     LeftSqBracket,
     RightSqBracket,
 
-    Undefined
-}
-
-#[derive(PartialEq, Clone, Copy)]
-pub enum EliteASTForFunctions {
-    Signal,
-    Specific,
-    Argument,
-    Exists,
-    Undefined
-}
-
-#[allow(non_camel_case_types)]
-pub enum EliteASTForSpecificTargets {
     Windows,
     macOS,
     iOS,
@@ -58,28 +51,28 @@ pub enum EliteASTForSpecificTargets {
     Arm,
     AArch64,
 
-    Undefined
-}
-
-#[derive(PartialEq, Copy, Clone)]
-pub enum EliteASTIfFunctions {
     Eq,
     UnEq,
-    Undefined
-}
 
-#[derive(PartialEq)]
-pub enum EliteASTUseFunctions {
     Signal,
     Exec,
     AddSource,
     Append,
+
+    Exit,
+
+    Specific,
+    Argument,
+    Exists,
+
     Undefined
 }
 
-pub enum EliteASTUseArguments {
-    Exit,
-    Undefined
+#[derive(Copy, Clone)]
+pub enum Branch {
+    Left,
+    Right,
+    Data
 }
 
 pub struct EliteAST {
@@ -107,13 +100,13 @@ pub struct EliteAST {
 
     pub syntax_list                : HashMap<String, EliteKeywords>,
 
-    pub ast_for_functions          : HashMap<String, EliteASTForFunctions>,
-    pub ast_for_specific_targets   : HashMap<String, EliteASTForSpecificTargets>,
+    pub ast_for_functions          : HashMap<String, EliteKeywords>,
+    pub ast_for_specific_targets   : HashMap<String, EliteKeywords>,
 
-    pub ast_if_functions           : HashMap<String, EliteASTIfFunctions>,
+    pub ast_if_functions           : HashMap<String, EliteKeywords>,
 
-    pub ast_use_functions          : HashMap<String, EliteASTUseFunctions>,
-    pub ast_use_list               : HashMap<String, EliteASTUseArguments>
+    pub ast_use_functions          : HashMap<String, EliteKeywords>,
+    pub ast_use_list               : HashMap<String, EliteKeywords>
 }
 
 pub struct EliteDataInfos {
@@ -124,6 +117,243 @@ pub struct EliteDataInfos {
 
 pub struct EliteDataTree {
     pub variable_list: Vec<EliteDataInfos>
+}
+
+
+pub struct ASTNode {
+    pub data   : Vec<EliteDataInfos>,
+    pub right  : Option<Box<ASTNode>>,
+    pub left   : Option<Box<ASTNode>>
+}
+
+impl Default for EliteDataInfos {
+    fn default() -> Self {
+        EliteDataInfos {
+            __type: EliteKeywords::Undefined,
+            __name: "".to_string(),
+            __data: "".to_string()
+        }
+    }
+}
+
+impl Default for ASTNode {
+    fn default() -> Self {
+        ASTNode {
+            data: Default::default(),
+            right: None,
+            left: None
+        }
+    }
+}
+
+impl ASTNode {
+    pub
+    fn search(&mut self, branch: Branch) {
+        let mut node = self;
+        let mut x: u32 = 0;
+
+        loop {
+            x += 1;
+
+            match branch {
+                Branch::Left => {
+                    if node.left.is_none() {
+                        break;
+                    } else {
+                        for val in &node.data {
+                            println!("(left){}name: {}, type: {:?}, data: {}",
+                                     " ".repeat((x - 1) as usize), val.__name, val.__type, val.__data);
+                        }
+
+                        node = node.left.as_mut().unwrap();
+                    }
+                },
+                Branch::Right => {
+                    if node.right.is_none() {
+                        break;
+                    } else {
+                        for val in &node.data {
+                            println!("(right){}name: {}, type: {:?}, data: {}",
+                                     " ".repeat((x - 1) as usize), val.__name, val.__type, val.__data);
+                        }
+
+                        node = node.right.as_mut().unwrap();
+                    }
+                },
+                Branch::Data => {
+                    for line in &node.data {
+                        println!("(data)name: {}, type: \x1b[0;35m{:?}\x1b[0m, data: {}",
+                                 if line.__name == "" {
+                                     "not_defined".to_string()
+                                 } else { line.__name.clone() }, line.__type, if line.__data == "" {
+                                "not_defined".to_string()
+                            } else { line.__data.clone() });
+                    }
+
+                    break;
+                }
+            }
+        }
+    }
+
+    pub
+    fn get_last_node(&mut self, branch: Branch) -> &ASTNode {
+        let mut node = self;
+
+        loop {
+            match branch {
+                Branch::Left => {
+                    if node.left.is_none() {
+                        break;
+                    } else {
+                        node = node.left.as_mut().unwrap();
+                    }
+                }
+                Branch::Right => {
+                    if node.right.is_none() {
+                        break;
+                    } else {
+                        node = node.right.as_mut().unwrap();
+                    }
+                }
+                Branch::Data => {
+                    break;
+                }
+            }
+        }
+
+        node
+    }
+
+    pub(crate)
+    fn ret(&mut self) -> &mut ASTNode {
+        self
+    }
+
+    //pub(crate)
+    //fn get_last_node_with(&mut self, branch: Branch) -> EliteKeywords {
+    //    self.get_last_node(branch).data.last().unwrap().__type
+    //}
+
+    // some assignments were not used inside of function but
+    // that are will be used later.
+    #[allow(unused_must_use)]
+    pub fn insert_key(&mut self, info: EliteDataInfos, branch: Branch) {
+        let mut node = self.ret();
+        let mut x: u32 = 0;
+
+        loop {
+            match branch {
+                Branch::Left => {
+                    if node.left.is_none() {
+                        match info.__type {
+                            Println |
+                            Print |
+                            Set |
+                            Use => {
+                                if x == 0 {
+                                    if node.left.is_none() { node.left.insert(Default::default()); }
+
+                                    node.data.push(EliteDataInfos {
+                                        __type: info.__type,
+                                        __name: info.__name.clone(),
+                                        __data: info.__data.clone()
+                                    });
+                                    break;
+                                }
+
+                                let mut var = self.ret();
+
+                                for _ in 0..x - 1 {
+                                    var = var.left.as_mut().unwrap();
+                                }
+
+                                var.data.push(EliteDataInfos {
+                                    __type: info.__type,
+                                    __name: info.__name.clone(),
+                                    __data: info.__data.clone()
+                                });
+                            },
+                            _ => {
+                                if node.left.is_none() { node.left.insert(Default::default()); }
+
+                                node.left.as_mut().unwrap().data.push(EliteDataInfos {
+                                    __type: info.__type,
+                                    __name: info.__name.clone(),
+                                    __data: info.__data.clone()
+                                });
+                            }
+                        }
+
+                        break;
+                    } else {
+                        node = node.left.as_mut().unwrap();
+                        x += 1;
+                    }
+                },
+                Branch::Right => {
+                    if node.right.is_none() {
+                        match info.__type {
+                            IfArg |
+                            Eq |
+                            UnEq |
+                            RightSqBracket |
+                            LeftSqBracket |
+                            Signal |
+                            Specific |
+                            Argument |
+                            Exists  => {
+                                if self.right.is_none() || x == 0 {
+                                    if self.right.is_none() { self.right.insert(Default::default()); }
+
+                                    self.right.as_mut().unwrap().data.push(EliteDataInfos {
+                                        __type: info.__type,
+                                        __name: info.__name.clone(),
+                                        __data: info.__data.clone()
+                                    });
+                                    break;
+                                }
+
+                                let mut var = self.ret();
+
+                                for _ in 0..x - 1 {
+                                    var = var.right.as_mut().unwrap();
+                                }
+
+                                var.data.push(EliteDataInfos {
+                                    __type: info.__type,
+                                    __name: info.__name.clone(),
+                                    __data: info.__data.clone()
+                                });
+                            },
+                            _ => {
+                                if node.right.is_none() { node.right.insert(Default::default()); }
+
+                                node.right.as_mut().unwrap().data.push(EliteDataInfos {
+                                    __type: info.__type,
+                                    __name: info.__name.clone(),
+                                    __data: info.__data.clone()
+                                });
+                            }
+                        }
+                        break;
+                    } else {
+                        node = node.right.as_mut().unwrap();
+                        x += 1;
+                    }
+                },
+                Branch::Data => {
+                    node.data.push(EliteDataInfos {
+                        __type: info.__type,
+                        __name: info.__name.clone(),
+                        __data: info.__data.clone()
+                    });
+
+                    break;
+                }
+            }
+        }
+    }
 }
 
 pub mod ast_helpers {
@@ -254,62 +484,62 @@ impl EliteAST {
         self.add_token(self.ast_square_left_bracket.clone(), EliteKeywords::LeftSqBracket  );
         self.add_token(self.ast_square_right_bracket.clone(), EliteKeywords::RightSqBracket);
 
-        self.add_for_function(self.to("signal"  ), EliteASTForFunctions::Signal  );
-        self.add_for_function(self.to("specific"), EliteASTForFunctions::Specific);
-        self.add_for_function(self.to("argument"), EliteASTForFunctions::Argument);
-        self.add_for_function(self.to("exists"  ), EliteASTForFunctions::Exists  );
+        self.add_for_function(self.to("signal"  ), EliteKeywords::Signal  );
+        self.add_for_function(self.to("specific"), EliteKeywords::Specific);
+        self.add_for_function(self.to("argument"), EliteKeywords::Argument);
+        self.add_for_function(self.to("exists"  ), EliteKeywords::Exists  );
 
-        self.add_for_specific_target(self.to("windows"  ), EliteASTForSpecificTargets::Windows  );
-        self.add_for_specific_target(self.to("macos"    ), EliteASTForSpecificTargets::macOS    );
-        self.add_for_specific_target(self.to("ios"      ), EliteASTForSpecificTargets::iOS      );
-        self.add_for_specific_target(self.to("linux"    ), EliteASTForSpecificTargets::Linux    );
-        self.add_for_specific_target(self.to("android"  ), EliteASTForSpecificTargets::Android  );
-        self.add_for_specific_target(self.to("freebsd"  ), EliteASTForSpecificTargets::FreeBSD  );
-        self.add_for_specific_target(self.to("dragonfly"), EliteASTForSpecificTargets::DragonFly);
-        self.add_for_specific_target(self.to("bitrig"   ), EliteASTForSpecificTargets::Bitrig   );
-        self.add_for_specific_target(self.to("openbsd"  ), EliteASTForSpecificTargets::OpenBSD  );
-        self.add_for_specific_target(self.to("netbsd"   ), EliteASTForSpecificTargets::NetBSD   );
+        self.add_for_specific_target(self.to("windows"  ), EliteKeywords::Windows  );
+        self.add_for_specific_target(self.to("macos"    ), EliteKeywords::macOS    );
+        self.add_for_specific_target(self.to("ios"      ), EliteKeywords::iOS      );
+        self.add_for_specific_target(self.to("linux"    ), EliteKeywords::Linux    );
+        self.add_for_specific_target(self.to("android"  ), EliteKeywords::Android  );
+        self.add_for_specific_target(self.to("freebsd"  ), EliteKeywords::FreeBSD  );
+        self.add_for_specific_target(self.to("dragonfly"), EliteKeywords::DragonFly);
+        self.add_for_specific_target(self.to("bitrig"   ), EliteKeywords::Bitrig   );
+        self.add_for_specific_target(self.to("openbsd"  ), EliteKeywords::OpenBSD  );
+        self.add_for_specific_target(self.to("netbsd"   ), EliteKeywords::NetBSD   );
 
-        self.add_for_specific_target(self.to("x86"      ), EliteASTForSpecificTargets::x86      );
-        self.add_for_specific_target(self.to("x86_64"   ), EliteASTForSpecificTargets::x86_64   );
-        self.add_for_specific_target(self.to("mips"     ), EliteASTForSpecificTargets::Mips     );
-        self.add_for_specific_target(self.to("powerpc"  ), EliteASTForSpecificTargets::PowerPc  );
-        self.add_for_specific_target(self.to("powerpc64"), EliteASTForSpecificTargets::PowerPc64);
-        self.add_for_specific_target(self.to("arm"      ), EliteASTForSpecificTargets::Arm      );
-        self.add_for_specific_target(self.to("aarch64"  ), EliteASTForSpecificTargets::AArch64  );
+        self.add_for_specific_target(self.to("x86"      ), EliteKeywords::x86      );
+        self.add_for_specific_target(self.to("x86_64"   ), EliteKeywords::x86_64   );
+        self.add_for_specific_target(self.to("mips"     ), EliteKeywords::Mips     );
+        self.add_for_specific_target(self.to("powerpc"  ), EliteKeywords::PowerPc  );
+        self.add_for_specific_target(self.to("powerpc64"), EliteKeywords::PowerPc64);
+        self.add_for_specific_target(self.to("arm"      ), EliteKeywords::Arm      );
+        self.add_for_specific_target(self.to("aarch64"  ), EliteKeywords::AArch64  );
 
-        self.add_if_function        (self.to("eq"      ), EliteASTIfFunctions::Eq  );
-        self.add_if_function        (self.to("uneq"    ), EliteASTIfFunctions::UnEq);
+        self.add_if_function        (self.to("eq"      ), EliteKeywords::Eq  );
+        self.add_if_function        (self.to("uneq"    ), EliteKeywords::UnEq);
 
-        self.add_use_function(self.to("signal"    ), EliteASTUseFunctions::Signal   );
-        self.add_use_function(self.to("exec"      ), EliteASTUseFunctions::Exec     );
-        self.add_use_function(self.to("add_source"), EliteASTUseFunctions::AddSource);
-        self.add_use_function(self.to("append"    ), EliteASTUseFunctions::Append   );
+        self.add_use_function(self.to("signal"    ), EliteKeywords::Signal   );
+        self.add_use_function(self.to("exec"      ), EliteKeywords::Exec     );
+        self.add_use_function(self.to("add_source"), EliteKeywords::AddSource);
+        self.add_use_function(self.to("append"    ), EliteKeywords::Append   );
 
-        self.add_use_argument(self.to("exit"     ), EliteASTUseArguments::Exit     );
+        self.add_use_argument(self.to("exit"     ), EliteKeywords::Exit     );
     }
 
     fn add_token(&mut self, token: String, token_type: EliteKeywords) {
         self.syntax_list.insert(token, token_type);
     }
 
-    fn add_for_function(&mut self, function: String, token_type: EliteASTForFunctions) {
+    fn add_for_function(&mut self, function: String, token_type: EliteKeywords) {
         self.ast_for_functions.insert(function, token_type);
     }
 
-    fn add_for_specific_target(&mut self, function: String, token_type: EliteASTForSpecificTargets) {
+    fn add_for_specific_target(&mut self, function: String, token_type: EliteKeywords) {
         self.ast_for_specific_targets.insert(function, token_type);
     }
 
-    fn add_if_function(&mut self, statement: String, token_type: EliteASTIfFunctions) {
+    fn add_if_function(&mut self, statement: String, token_type: EliteKeywords) {
         self.ast_if_functions.insert(statement, token_type);
     }
 
-    fn add_use_function(&mut self, function: String, token_type: EliteASTUseFunctions) {
+    fn add_use_function(&mut self, function: String, token_type: EliteKeywords) {
         self.ast_use_functions.insert(function, token_type);
     }
 
-    fn add_use_argument(&mut self, argument: String, token_type: EliteASTUseArguments) {
+    fn add_use_argument(&mut self, argument: String, token_type: EliteKeywords) {
         self.ast_use_list.insert(argument, token_type);
     }
 
@@ -317,42 +547,42 @@ impl EliteAST {
         data.to_string()
     }
 
-    pub fn match_for_functions(&mut self, function: &String) -> &EliteASTForFunctions {
+    pub fn match_for_functions(&mut self, function: &String) -> &EliteKeywords {
         let function = self.ast_for_functions.get(function);
 
-        if function.is_none() { return &EliteASTForFunctions::Undefined; }
+        if function.is_none() { return &EliteKeywords::Undefined; }
 
         function.unwrap()
     }
 
-    pub fn match_for_specific_targets(&mut self, target: &String) -> &EliteASTForSpecificTargets {
+    pub fn match_for_specific_targets(&mut self, target: &String) -> &EliteKeywords {
         let target = self.ast_for_specific_targets.get(target);
 
-        if target.is_none() { return &EliteASTForSpecificTargets::Undefined; }
+        if target.is_none() { return &EliteKeywords::Undefined; }
 
         target.unwrap()
     }
 
-    pub fn match_if_functions(&mut self, statement: &String) -> &EliteASTIfFunctions {
+    pub fn match_if_functions(&mut self, statement: &String) -> &EliteKeywords {
         let statement = self.ast_if_functions.get(statement);
 
-        if statement.is_none() { return &EliteASTIfFunctions::Undefined; }
+        if statement.is_none() { return &EliteKeywords::Undefined; }
 
         statement.unwrap()
     }
 
-    pub fn match_use_functions(&mut self, function: &String) -> &EliteASTUseFunctions {
+    pub fn match_use_functions(&mut self, function: &String) -> &EliteKeywords {
         let function = self.ast_use_functions.get(function);
 
-        if function.is_none() { return &EliteASTUseFunctions::Undefined; }
+        if function.is_none() { return &EliteKeywords::Undefined; }
 
         function.unwrap()
     }
 
-    pub fn match_use_arguments(&mut self, argument: &String) -> &EliteASTUseArguments {
+    pub fn match_use_arguments(&mut self, argument: &String) -> &EliteKeywords {
         let argument = self.ast_use_list.get(argument);
 
-        if argument.is_none() { return &EliteASTUseArguments::Undefined; }
+        if argument.is_none() { return &EliteKeywords::Undefined; }
 
         argument.unwrap()
     }

@@ -7,17 +7,12 @@
 use {
     crate::{
         ast::{
+            Branch,
+
             EliteKeywords,
 
-            EliteASTForFunctions,
-            EliteASTForSpecificTargets,
-
-            EliteASTIfFunctions,
-
-            EliteASTUseArguments,
-            EliteASTUseFunctions,
-
             EliteAST,
+            ASTNode,
             EliteDataTree,
             EliteDataInfos,
 
@@ -28,21 +23,22 @@ use {
 
         VALID_VERSIONS,
         VERSION
-    },
+    }
 };
 
 
 pub struct EliteParser {
     pub init_ast : EliteAST,
+    pub ast_nodes: ASTNode,
     pub data_tree: EliteDataTree,
-    pub just_ct  : bool,
+    pub just_ct  : bool
 }
 
 impl EliteParser {
     pub fn parse_tokens(&mut self, tokens: &Vec<String>) {
-        let mut __matched_type           = EliteKeywords       ::Undefined;
-        let mut last_matched_function    = EliteASTForFunctions::Undefined;
-        let mut last_matched_if_function = EliteASTIfFunctions ::Undefined;
+        let mut __matched_type           = EliteKeywords::Undefined;
+        let mut last_matched_function    = EliteKeywords::Undefined;
+        let mut last_matched_if_function = EliteKeywords::Undefined;
 
         let mut is_variable                     = false;
         let mut is_defined                      = false;
@@ -145,6 +141,12 @@ impl EliteParser {
                 EliteKeywords::RightParenthese => {},
 
                 EliteKeywords::LeftSqBracket   => {
+                    self.ast_nodes.insert_key(EliteDataInfos {
+                        __type: EliteKeywords::LeftSqBracket,
+                        __name: Default::default(),
+                        __data: Default::default()
+                    }, Branch::Data);
+
                     if is_main_os  {
                         count_end_of_function += 1;
                     }
@@ -152,8 +154,14 @@ impl EliteParser {
                     continue;
                 },
                 EliteKeywords::RightSqBracket  => {
+                    self.ast_nodes.insert_key(EliteDataInfos {
+                        __type: EliteKeywords::RightSqBracket,
+                        __name: Default::default(),
+                        __data: Default::default()
+                    }, Branch::Data);
+
                     if count_end_of_function == 0 {
-                        elite_logger::log(EliteLogType::Error,
+                        elite_logger::log(EliteLogType::Warning,
                                           "right-sq-bracket",
                                           "unmatched bracket");
                     }
@@ -231,8 +239,20 @@ impl EliteParser {
                             }
 
                             match last_matched_if_function {
-                                EliteASTIfFunctions::Eq |
-                                EliteASTIfFunctions::UnEq => {
+                                EliteKeywords::Eq |
+                                EliteKeywords::UnEq => {
+                                    self.ast_nodes.insert_key(EliteDataInfos {
+                                        __type: EliteKeywords::IfArg,
+                                        __name: variable_name.clone(),
+                                        __data: crate::ast::ast_helpers::extract_argument(&first_if_argument.clone())
+                                    }, Branch::Data);
+
+                                    self.ast_nodes.insert_key(EliteDataInfos {
+                                        __type: last_matched_if_function.clone(),
+                                        __name: variable_name.clone(),
+                                        __data: crate::ast::ast_helpers::extract_argument(&second_if_argument.clone())
+                                    }, Branch::Data);
+
                                     is_main_os = self.ast_parse_if_function(variable_name.clone(),
                                                                             crate::ast::ast_helpers::extract_argument(&first_if_argument.clone()),
                                                                             crate::ast::ast_helpers::extract_argument(&second_if_argument.clone()));
@@ -254,7 +274,7 @@ impl EliteParser {
                             continue;
                         }
 
-                        if self.init_ast.match_if_functions(&token) != &EliteASTIfFunctions::Undefined {
+                        if self.init_ast.match_if_functions(&token) != &EliteKeywords::Undefined {
                             is_if_function = true;
 
                             last_matched_if_function = *self.init_ast.match_if_functions(&token);
@@ -277,7 +297,7 @@ impl EliteParser {
                                 let token = ast_helpers::extract_argument(&token);
 
                                 match self.init_ast.match_use_functions(&use_current_function) {
-                                    EliteASTUseFunctions::AddSource => {
+                                    EliteKeywords::AddSource => {
                                         if !std::path::Path::new(&token).exists() {
                                             elite_logger::log(EliteLogType::Warning,
                                                               &token,  "source file is not exist");
@@ -287,7 +307,7 @@ impl EliteParser {
                                                           ast_helpers::extract_argument(&token),
                                                           ' ');
                                     },
-                                    EliteASTUseFunctions::Append    => {
+                                    EliteKeywords::Append    => {
                                         self.token_append(use_add_source_argument.clone(),
                                                           ast_helpers::extract_argument(&token),
                                                           Default::default());
@@ -312,8 +332,8 @@ impl EliteParser {
                         }
 
                         match self.init_ast.match_use_functions(&token).clone() {
-                            EliteASTUseFunctions::AddSource |
-                            EliteASTUseFunctions::Append     => {
+                            EliteKeywords::AddSource |
+                            EliteKeywords::Append     => {
                                 is_use_add_source = true;
 
                                 use_current_function = token.clone();
@@ -338,10 +358,10 @@ impl EliteParser {
 
                             if token.is_empty() { continue; }
 
-
                             self.ast_parse_use_function(variable_data.clone(),
                                                         ast_helpers::extract_argument(token),
                                                         is_suppress);
+
                             if is_suppress { is_suppress = false; }
 
                             is_use = false;
@@ -372,6 +392,12 @@ impl EliteParser {
                         is_print = false;
 
                         if is_newline {
+                            self.ast_nodes.insert_key(EliteDataInfos {
+                                __type: EliteKeywords::Println,
+                                __name: "not_defined".to_string(),
+                                __data: ast_helpers::extract_argument(&ast_helpers::extract_argument(&token))
+                            }, Branch::Data);
+
                             if !is_suppress {
                                 if !self.just_ct {
                                     println!();
@@ -379,6 +405,12 @@ impl EliteParser {
                             }
 
                             is_newline = false;
+                        } else {
+                            self.ast_nodes.insert_key(EliteDataInfos {
+                                __type: EliteKeywords::Print,
+                                __name: "not_defined".to_string(),
+                                __data: ast_helpers::extract_argument(&ast_helpers::extract_argument(&token))
+                            }, Branch::Data);
                         }
 
                         is_suppress = false;
@@ -391,9 +423,9 @@ impl EliteParser {
                             let token = &(ast_helpers::extract_argument(&token));
 
                             match last_matched_function {
-                                EliteASTForFunctions::Specific |
-                                EliteASTForFunctions::Argument |
-                                EliteASTForFunctions::Exists   => {
+                                EliteKeywords::Specific |
+                                EliteKeywords::Argument |
+                                EliteKeywords::Exists => {
                                     is_main_os = self.ast_parse_for_functions(variable_name.clone(),
                                                                               ast_helpers::extract_argument(token));
                                 },
@@ -411,7 +443,7 @@ impl EliteParser {
                             continue;
                         }
 
-                        if self.init_ast.match_for_functions(&token) != &EliteASTForFunctions::Undefined {
+                        if self.init_ast.match_for_functions(&token) != &EliteKeywords::Undefined {
                             is_for_argument = true;
                             last_matched_function = *self.init_ast.match_for_functions(&token);
 
@@ -423,6 +455,12 @@ impl EliteParser {
 
                     if is_required_version {
                         if is_required_version_initializer {
+                            self.ast_nodes.insert_key(EliteDataInfos {
+                                __type: EliteKeywords::RequiredVersion,
+                                __name: token.clone(),
+                                __data: token.clone()
+                            }, Branch::Data);
+
                             if crate::tokenizer::elite_tokenizer::is_data(&token.as_str()) {
                                 elite_logger::log(EliteLogType::Error,
                                                   "string_notation", &*format!(
@@ -448,7 +486,9 @@ impl EliteParser {
                                                           &*format!("required {} or latest version",
                                                                     token));
 
-                                        std::process::exit(1);
+                                        if !self.just_ct {
+                                            std::process::exit(1);
+                                        }
                                     }
 
                                     is_valid = true;
@@ -490,18 +530,26 @@ impl EliteParser {
     }
 
     pub fn ast_parse_for_functions(&mut self, function: String, argument: String) -> bool {
+        self.ast_nodes.insert_key(EliteDataInfos {
+            __type: self.init_ast.match_for_functions(&function).clone(),
+            __name: "not_defined".to_string(),
+            __data: argument.clone()
+        }, Branch::Data);
+
+        if self.just_ct { return true; }
+
         match self.init_ast.match_for_functions(&function) {
-            EliteASTForFunctions::Signal => {
+            EliteKeywords::Signal => {
                 // TODO: Signal parser.
                 false
             },
-            EliteASTForFunctions::Specific => {
+            EliteKeywords::Specific => {
                 self.ast_parse_for_specific_target(argument)
             },
-            EliteASTForFunctions::Argument => {
+            EliteKeywords::Argument => {
                 self.is_same_arg(&argument)
             },
-            EliteASTForFunctions::Exists   => {
+            EliteKeywords::Exists   => {
                 self.is_exists(&argument)
             },
             _ => {
@@ -514,38 +562,40 @@ impl EliteParser {
     }
 
     pub fn ast_parse_for_specific_target(&mut self, target: String) -> bool {
+        if self.just_ct { return true; }
+
         match self.init_ast.match_for_specific_targets(&target) {
-            // EliteASTForSpecificTargets::Windows => {
+            // EliteKeywords::Windows => {
             //
             // },
-            // EliteASTForSpecificTargets::macOS => {
+            // EliteKeywords::macOS => {
             //
             // },
-            // EliteASTForSpecificTargets::iOS => {
+            // EliteKeywords::iOS => {
             //
             // },
-            // EliteASTForSpecificTargets::Linux => {
+            // EliteKeywords::Linux => {
             //
             // },
-            // EliteASTForSpecificTargets::Android => {
+            // EliteKeywords::Android => {
             //
             // },
-            // EliteASTForSpecificTargets::FreeBSD => {
+            // EliteKeywords::FreeBSD => {
             //
             // },
-            // EliteASTForSpecificTargets::DragonFly => {
+            // EliteKeywords::DragonFly => {
             //
             // },
-            // EliteASTForSpecificTargets::Bitrig => {
+            // EliteKeywords::Bitrig => {
             //
             // },
-            // EliteASTForSpecificTargets ::OpenBSD => {
+            // EliteKeywords ::OpenBSD => {
             //
             // },
-            // EliteASTForSpecificTargets::NetBSD => {
+            // EliteKeywords::NetBSD => {
             //
             // },
-            EliteASTForSpecificTargets::Undefined => {
+            EliteKeywords::Undefined => {
                 elite_logger::log(EliteLogType::Error,
                                   &target,
                                   "undefined os target");
@@ -559,25 +609,33 @@ impl EliteParser {
     }
 
     pub fn ast_parse_if_function(&mut self, function: String,  argument_1: String, argument_2: String) -> bool {
+        if self.just_ct { return true; }
+
         match self.init_ast.match_if_functions(&function) {
-            EliteASTIfFunctions::Eq => {
+            EliteKeywords::Eq => {
                 self.is_same_argument(&argument_1, &argument_2)
             },
-            EliteASTIfFunctions::UnEq => {
+            EliteKeywords::UnEq => {
                 self.is_not_same_argument(&argument_1, &argument_2)
             },
-            EliteASTIfFunctions::Undefined => {
+            _ => {
                 false
             }
         }
     }
 
     pub fn ast_parse_use_function(&mut self, function: String, argument: String, suppress: bool) {
+        self.ast_nodes.insert_key(EliteDataInfos {
+            __type: EliteKeywords::Use,
+            __name: argument.clone(),
+            __data: function.clone()
+        }, Branch::Data);
+
         match self.init_ast.match_use_functions(&function) {
-            EliteASTUseFunctions::Signal => {
+            EliteKeywords::Signal => {
                 self.ast_parse_use(argument);
             },
-            EliteASTUseFunctions::Exec => {
+            EliteKeywords::Exec => {
                 let mut command = String::new();
 
                 for character in argument.split(' ').collect::<Vec<_>>().get(0).unwrap().chars() {
@@ -630,8 +688,10 @@ impl EliteParser {
 
     pub fn ast_parse_use(&mut self, argument: String) {
         match self.init_ast.match_use_arguments(&argument) {
-            EliteASTUseArguments::Exit => {
-                std::process::exit(0);
+            EliteKeywords::Exit => {
+                if !self.just_ct {
+                    std::process::exit(0);
+                }
             },
             _ => {
                 if argument != "start" {
@@ -651,6 +711,12 @@ impl EliteParser {
             if variable_list.__name == variable {
                 self.data_tree.variable_list[_index].__data = data.clone();
 
+                self.ast_nodes.insert_key(EliteDataInfos {
+                    __type: EliteKeywords::Change,
+                    __name: self.data_tree.variable_list[_index].__name.clone(),
+                    __data:  self.data_tree.variable_list[_index].__data.clone()
+                }, Branch::Data);
+
                 return;
             }
         }
@@ -658,10 +724,16 @@ impl EliteParser {
         self.data_tree.variable_list.push(
                 EliteDataInfos {
                     __type: EliteKeywords::Set,
-                    __name: variable,
-                    __data: data
+                    __name: variable.clone(),
+                    __data: data.clone()
                 }
         );
+
+        self.ast_nodes.insert_key(EliteDataInfos {
+            __type: EliteKeywords::Set,
+            __name: variable.clone(),
+            __data: data.clone()
+        }, Branch::Data);
     }
 
     pub fn token_get(&self, variable: String) -> String {
@@ -679,6 +751,13 @@ impl EliteParser {
             if variable_list.__name == variable {
                 self.data_tree.variable_list[_index].__data.push_str(
                     format!("{}{}", delimiter, argument).as_str());
+
+                self.ast_nodes.insert_key(EliteDataInfos {
+                    __type: EliteKeywords::Append,
+                    __name: self.data_tree.variable_list[_index].__name.clone(),
+                    __data: argument.clone()
+                }, Branch::Data);
+
                 return;
             }
         }

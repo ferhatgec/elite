@@ -17,6 +17,7 @@ pub mod elite_lexer {
 
         let mut init_parser = crate::parser::EliteParser {
             init_ast : init_ast,
+            ast_nodes: Default::default(),
             data_tree: EliteDataTree { variable_list: Default::default() },
             just_ct  : just_create_tree
         };
