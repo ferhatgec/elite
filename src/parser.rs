@@ -178,7 +178,7 @@ impl EliteParser {
                     }
                 },
                 _ => {
-                    if !is_main_os {
+                    if !is_main_os && !self.just_ct {
                         is_newline      = false;
                         is_print        = false;
                         is_use          = false;
@@ -563,7 +563,6 @@ impl EliteParser {
 
     pub fn ast_parse_for_specific_target(&mut self, target: String) -> bool {
         if self.just_ct { return true; }
-
         match self.init_ast.match_for_specific_targets(&target) {
             // EliteKeywords::Windows => {
             //
@@ -626,7 +625,7 @@ impl EliteParser {
 
     pub fn ast_parse_use_function(&mut self, function: String, argument: String, suppress: bool) {
         self.ast_nodes.insert_key(EliteDataInfos {
-            __type: EliteKeywords::Use,
+            __type: self.init_ast.match_use_functions(&function).clone(),
             __name: argument.clone(),
             __data: function.clone()
         }, Branch::Data);

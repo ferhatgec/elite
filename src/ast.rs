@@ -343,7 +343,7 @@ impl ASTNode {
                     }
                 },
                 Branch::Data => {
-                    node.data.push(EliteDataInfos {
+                    self.data.push(EliteDataInfos {
                         __type: info.__type,
                         __name: info.__name.clone(),
                         __data: info.__data.clone()
