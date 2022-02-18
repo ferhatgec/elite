@@ -11,6 +11,7 @@
  * Different syntax.
  * Preprocessor.
  * Aliases.
+ * Language back-ends.
 
 ### A taste of Elite's syntax:
 ```cpp
@@ -59,5 +60,14 @@ for signal "start" [
 ### Other implementations?
   * [For C++ as ElitedotC++](https://github.com/ferhatgec/elite.cpp)
   * [Gretea's Runtime uses Elite](https://github.com/ferhatgec/gretea)
+
+## Transpiler back-ends? (oldest-)
+  * [Python](https://github.com/ferhatgec/elitetopy)
+  * [C++](https://github.com/ferhatgec/elitetopp)
+  * [C](https://github.com/ferhatgec/elitetoc)
+  * [Rust](https://github.com/ferhatgec/elitetors)
+  * [Bash](https://github.com/ferhatgec/elitetobash)
+  * [Perl](https://github.com/ferhatgec/elitetoperl)
+  * [Go](https://github.com/ferhatgec/elitetogo)
 
 ### Elitebuild licensed under the terms of MIT License.
