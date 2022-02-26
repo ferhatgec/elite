@@ -70,5 +70,6 @@ for signal "start" [
   * [Perl](https://github.com/ferhatgec/elitetoperl)
   * [Go](https://github.com/ferhatgec/elitetogo)
   * [D](https://github.com/ferhatgec/elitetod)
+  * [Scala](https://github.com/ferhatgec/elitetoscala)
 
 ### Elitebuild licensed under the terms of MIT License.
