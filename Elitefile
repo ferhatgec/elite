@@ -119,6 +119,12 @@ $fn signal "start" [
     \\    ]
     \\]
 
+    set gech as "gech"
+    println $gech
+    unset gech
+    print $gech
+
+
     \\ {...} default formatter
     for specific "{Linux}"   [ use exec   "echo Hello, Elitebuild from syscall! (for Linux-based)" ]
 

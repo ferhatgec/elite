@@ -14,6 +14,7 @@ use {
 #[allow(non_camel_case_types)]
 pub enum EliteKeywords {
     Set,
+    Unset,
     As,
     For,
     Print,
@@ -77,6 +78,7 @@ pub enum Branch {
 
 pub struct EliteAST {
     pub ast_set                    : String,
+    pub ast_unset                  : String,
     pub ast_as                     : String,
     pub ast_is                     : String,
     pub ast_for                    : String,
@@ -395,6 +397,7 @@ impl Default for EliteAST {
     fn default() -> Self {
         EliteAST {
             ast_set                    : "".to_string(),
+            ast_unset                  : "".to_string(),
             ast_as                     : "".to_string(),
             ast_is                     : "".to_string(),
             ast_for                    : "".to_string(),
@@ -430,6 +433,7 @@ impl Default for EliteAST {
 impl EliteAST {
     pub fn init_keywords(&mut self) {
         self.ast_set                 = self.to("set"             );
+        self.ast_unset               = self.to("unset"           );
         self.ast_as                  = self.to("as"              );
         self.ast_is                  = self.to("is"              );
         self.ast_for                 = self.to("for"             );
@@ -460,6 +464,7 @@ impl EliteAST {
         ];
 
         self.add_token(self.ast_set.clone    (), EliteKeywords::Set    );
+        self.add_token(self.ast_unset.clone  (), EliteKeywords::Unset  );
 
         // 'as' & 'is' keywords are same however,
         // 'is' mostly using by 'required_version' to declare required version,

@@ -53,6 +53,7 @@ for signal "start" [
       println "Build succeeded"
     ]
     
+    unset COMPILER_PATH
     use signal "exit"
   ]
    

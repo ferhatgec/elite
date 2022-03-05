@@ -43,6 +43,7 @@ impl EliteParser {
         let mut last_matched_if_function = EliteKeywords::Undefined;
 
         let mut is_variable                     = false;
+        let mut is_unset_variable               = false;
         let mut is_defined                      = false;
 
         let mut is_for                          = false;
@@ -103,6 +104,9 @@ impl EliteParser {
             match __matched_type {
                 EliteKeywords::Set => {
                     is_variable = true;
+                },
+                EliteKeywords::Unset => {
+                    is_unset_variable = true;
                 },
                 EliteKeywords::As => {
                     if is_variable {
@@ -181,10 +185,11 @@ impl EliteParser {
                 },
                 _ => {
                     if !is_main_os && !self.just_ct {
-                        is_newline      = false;
-                        is_print        = false;
-                        is_use          = false;
-                        is_use_argument = false;
+                        is_newline        = false;
+                        is_print          = false;
+                        is_unset_variable = false;
+                        is_use            = false;
+                        is_use_argument   = false;
 
                         continue;
                     }
@@ -416,6 +421,20 @@ impl EliteParser {
                         }
 
                         is_suppress = false;
+                        continue;
+                    }
+
+                    if is_unset_variable {
+                        self.ast_nodes.insert_key(EliteDataInfos {
+                            __type: EliteKeywords::Unset,
+                            __name: token.clone(),
+                            __data: "not_defined".to_string()
+                        }, Branch::Data);
+
+                        let token = ast_helpers::extract_argument(&token);
+
+                        self.data_tree.variable_list.retain(|val| *val.__name != token);
+                        is_unset_variable = false;
                         continue;
                     }
 
