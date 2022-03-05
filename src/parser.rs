@@ -1,6 +1,6 @@
 // MIT License
 //
-// Copyright (c) 2021 Ferhat Geçdoğan All Rights Reserved.
+// Copyright (c) 2021-2022 Ferhat Geçdoğan All Rights Reserved.
 // Distributed under the terms of the MIT License.
 //
 //
@@ -31,6 +31,8 @@ pub struct EliteParser {
     pub init_ast : EliteAST,
     pub ast_nodes: ASTNode,
     pub data_tree: EliteDataTree,
+    pub arguments: Vec<String>,
+    pub platforms: Vec<String>,
     pub just_ct  : bool
 }
 
@@ -536,7 +538,18 @@ impl EliteParser {
             __data: argument.clone()
         }, Branch::Data);
 
-        if self.just_ct { return true; }
+        match *self.init_ast.match_for_functions(&function) {
+            EliteKeywords::Argument => {
+                if !self.arguments.contains(&argument.clone()) {
+                    self.arguments.push(argument.clone());
+                }
+            },
+            EliteKeywords::Specific => {
+                if !self.platforms.contains(&argument.clone()) {
+                    self.platforms.push(argument.clone());
+                }
+            }, _ => {}
+        } if self.just_ct { return true; }
 
         match self.init_ast.match_for_functions(&function) {
             EliteKeywords::Signal => {

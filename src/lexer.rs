@@ -1,6 +1,6 @@
 // MIT License
 //
-// Copyright (c) 2021 Ferhat Geçdoğan All Rights Reserved.
+// Copyright (c) 2021-2022 Ferhat Geçdoğan All Rights Reserved.
 // Distributed under the terms of the MIT License.
 //
 //
@@ -19,6 +19,8 @@ pub mod elite_lexer {
             init_ast : init_ast,
             ast_nodes: Default::default(),
             data_tree: EliteDataTree { variable_list: Default::default() },
+            arguments: vec![],
+            platforms: vec![],
             just_ct  : just_create_tree
         };
 

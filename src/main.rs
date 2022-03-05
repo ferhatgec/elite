@@ -20,15 +20,18 @@ fn main() {
                 Usage:\n \
                 {arg} file argument\n \
                 {arg} Elitefile install\n \
+                {arg} analyze Elitefile\n \
                 {arg} ast Elitefile", __VERSION__.unwrap_or("undefined"),
                                           arg = cli_arguments[0]);
 
         std::process::exit(1);
     }
 
-    if cli_arguments.get(1).unwrap() == "ast" && cli_arguments.len() < 3 {
-        println!("{} ast Elitefile\n{}\n{}", cli_arguments[0],
-                 "          ^^^^^^^^^",
+    let arg = cli_arguments.get(1).unwrap();
+    if (arg == "ast" || arg == "analyze") && cli_arguments.len() < 3 {
+        println!("{} {} Elitefile\n{}^^^^^^^^^\n{}", cli_arguments[0],
+                 &arg,
+                 " ".repeat(cli_arguments[0].len() + arg.len() + 2),
                  "          file required");
 
         std::process::exit(1);
@@ -39,15 +42,43 @@ fn main() {
         unparsed: vec![]
     };
 
-    if cli_arguments.get(1).unwrap() != "ast" {
-        elite_read.read_raw_file(cli_arguments.get(1).unwrap());
-    } else { elite_read.read_raw_file(cli_arguments.get(2).unwrap()); }
+    let val = match cli_arguments.get(1).unwrap().as_str() {
+        "ast" |
+        "analyze" => {
+            elite_read.read_raw_file(cli_arguments.get(2).unwrap());
+            true
+        },
+        _ => {
+            elite_read.read_raw_file(cli_arguments.get(1).unwrap());
+            false
+        }
+    };
 
-    let mut x = crate::lexer::elite_lexer::init_lexer(&elite_read, if cli_arguments.get(1).unwrap() == "ast" {
-        true
-    } else { false });
+    let mut x = crate::lexer::elite_lexer::init_lexer(&elite_read, val);
 
-    if cli_arguments.get(1).unwrap() == "ast" {
-        x.ast_nodes.search(Branch::Data);
+    match cli_arguments.get(1).unwrap().as_str() {
+        "ast" =>  x.ast_nodes.search(Branch::Data),
+        "analyze" => {
+            println!("Possible arguments:");
+
+            if x.arguments.is_empty() {
+                println!("[not defined]");
+            } else {
+                for arg in &x.arguments {
+                    println!(" * {}", arg);
+                }
+            }
+
+            println!("\nPossible platforms:");
+
+            if x.platforms.is_empty() {
+                println!("[not defined]");
+            } else {
+                for platform in &x.platforms {
+                    println!(" * {}", platform);
+                }
+            }
+        },
+        _ => {}
     }
 }

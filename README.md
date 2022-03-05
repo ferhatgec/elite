@@ -11,10 +11,13 @@
  * Different syntax.
  * Preprocessor.
  * Aliases.
+ * Built-in analyzer.
  * Language back-ends.
 
 ### A taste of Elite's syntax:
 ```cpp
+required_version is 0.1
+
 set BIN_PATH      as "/usr/bin/"
 set COMPILER      as "g++"
 set COMPILER_PATH as "{BIN_PATH}{COMPILER}"
