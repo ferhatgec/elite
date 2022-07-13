@@ -1,6 +1,6 @@
 // MIT License
 //
-// Copyright (c) 2021 Ferhat Geçdoğan All Rights Reserved.
+// Copyright (c) 2021-2022 Ferhat Geçdoğan All Rights Reserved.
 // Distributed under the terms of the MIT License.
 //
 //
@@ -53,8 +53,14 @@ pub mod elite_tokenizer {
             }
 
             if is_link {
-                tokenized_data.push(format!("-l{}",
-                                            &crate::ast::ast_helpers::extract_argument(&token.to_string())));
+                let mut linker_flags = String::new();
+
+                for val in
+                    &crate::ast::ast_helpers::extract_argument(&get_data(&temporary_tokens, _index)).split(' ').collect::<Vec<&str>>() {
+                    linker_flags.push_str(format!("-l{} ", val).as_str());
+                }
+
+                tokenized_data.push(linker_flags.to_owned());
 
                 is_link    = false; continue;
             }
