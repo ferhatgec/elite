@@ -18,97 +18,161 @@ pub mod elite_tokenizer {
     ];
 
     pub fn tokenize_first(raw_data: &crate::read::EliteFileData) -> Vec<String> {
-        let temporary_tokens: Vec<_> = raw_data.raw_data.split(' ').collect();
         let mut tokenized_data: Vec<String> = vec![];
-
-        let mut variable_data : String = String::new();
-
+        let mut current_token = String::new();
+        let mut escape_sequence = false;
+        let mut data = false;
+        let mut skip_until_newline = false;
         let mut is_env     = false;
         let mut is_link    = false;
         let mut is_std     = false;
         let mut is_outfile = false;
 
-        for (_index, token) in temporary_tokens.iter().enumerate() {
-            if token.is_empty() { continue; }
-
-            if is_env {
-                let environment = get_environment(&crate::ast::ast_helpers::extract_argument(
-                    &token.to_string()).as_str());
-
-                // Replace whitespace with '_'
-                //if !is_data(&token) {
-                    // Error (Environments must be string that has not any whitespaces (use _ instead))
-                //}
-
-                if !environment.is_empty() {
-                    tokenized_data.push(environment.to_owned());
-                }
-                // else {
-                    // Error (environment not found in this scope)
-                //}
-
-                is_env = false;
-
-                continue
-            }
-
-            if is_link {
-                tokenized_data.push(format!("-l{}",
-                                            &crate::ast::ast_helpers::extract_argument(&token.to_string())));
-
-                is_link    = false; continue;
-            }
-
-            if is_std {
-                tokenized_data.push(format!("-std={}",
-                                            &crate::ast::ast_helpers::extract_argument(&token.to_string())));
-
-                is_std     = false; continue;
-            }
-
-            if is_outfile {
-                tokenized_data.push(format!("-o {}",
-                                            &crate::ast::ast_helpers::extract_argument(&token.to_string())));
-
-                is_outfile = false; continue;
-            }
-
-            if is_preprocessor_token(&token, "env") {
-                is_env     = true; continue;
-            }
-
-            if is_preprocessor_token(&token, "link") {
-                is_link    = true; continue;
-            }
-
-            if is_preprocessor_token(&token, "std") {
-                is_std     = true; continue;
-            }
-
-            if is_preprocessor_token(&token, "outfile") {
-                is_outfile = true; continue;
-            }
-
-            if is_data(&token) {
-                tokenized_data.push(get_data(&temporary_tokens, _index));
-
+        for ch in raw_data.raw_data.chars() {
+            if ch != '\n' && skip_until_newline {
                 continue;
             }
 
-            let token: String = String::from(replace_for_tokenize(&token.to_string()));
-            let x: Vec<_> = token.split(' ').collect::<Vec<&str>>();
+            match ch {
+                '\n' => {
+                    if skip_until_newline {
+                        skip_until_newline = false;
+                    } else if data {
+                        current_token.push_str("\\n");
+                    }
+                },
+                '(' |
+                ')' |
+                '[' |
+                ']' |
+                '$' |
+                ',' |
+                ' ' => {
+                    if data {
+                        current_token.push(ch);
+                    } else {
+                        if is_preprocessor_token(&current_token, "env") {
+                            is_env = true;
+                        } else if is_preprocessor_token(&current_token, "link") {
+                            is_link = true;
+                        } else if is_preprocessor_token(&current_token, "std") {
+                            is_std = true;
+                        } else if is_preprocessor_token(&current_token, "outfile") {
+                            is_outfile = true;
+                        } else {
+                            tokenized_data.push(current_token.clone());
+                        }
 
-            for operators in x {
-                variable_data.push_str(operators);
+                        if ch != ' ' {
+                            tokenized_data.push(format!("{}", ch));
+                        } 
 
-                tokenized_data.push(operators.to_string());
+                        current_token.clear();
+                    }
+                },
+                '\'' |
+                '"' => {
+                    if escape_sequence {
+                        data = true;
+                        current_token.push(ch);
+                    } else {
+                        if !current_token.starts_with(ch) {
+                            data = true;
+                            current_token.push(ch);
+                            continue;
+                        }
+
+                        if is_link {
+                            let mut linker_flags = String::new();
+
+                            for val in &crate::ast::ast_helpers::extract_argument(&current_token.clone()).split(' ').collect::<Vec<&str>>() {
+                                linker_flags.push_str(format!("-l{} ", val).as_str());
+                            }
+
+                            linker_flags.pop();
+                            tokenized_data.push(linker_flags.to_owned());
+            
+                            is_link = false;
+                        } else if is_std {
+                            tokenized_data.push(format!("-std={}",
+                                                        &crate::ast::ast_helpers::extract_argument(&current_token.clone())));
+            
+                            is_std = false;
+                        } else if is_outfile {
+                            tokenized_data.push(format!("-o {}",
+                                                        &crate::ast::ast_helpers::extract_argument(&current_token.clone())));
+            
+                            is_outfile = false;
+                        } else if is_env {
+                            let environment = get_environment(&crate::ast::ast_helpers::extract_argument(
+                                &current_token.clone()).as_str());
+            
+                            // Replace whitespace with '_'
+                            //if !is_data(&token) {
+                                // Error (Environments must be string that has not any whitespace (use _ instead))
+                            //}
+            
+                            if !environment.is_empty() {
+                                tokenized_data.push(format!("{}", environment.to_owned()));
+                            }
+                            // else {
+                                // Error (environment not found in this scope)
+                            //}
+            
+                            is_env = false;
+                        } else {
+                            current_token.push(ch);
+
+                            tokenized_data.push(current_token.clone());
+                        }
+
+                        data = false;
+                        // escafe::run()
+                        current_token.clear();
+                        escape_sequence = false;
+                    }
+                },
+                '\\' => {
+                    if escape_sequence {
+                        current_token.push('\\');
+                    } else if data {
+                        escape_sequence = true;
+                    }
+                },
+                'n' |
+                't' |
+                'r' |
+                'x' |
+                '0' |
+                '1' |
+                'm' |
+                'w' => {
+                    if escape_sequence {
+                        current_token.push('\\');
+                        escape_sequence = false;
+                    } current_token.push(ch);
+                },
+                '#' => {
+                    if !escape_sequence && !data {
+                        skip_until_newline = true;
+                    } else {
+                        current_token.push('#');
+                    }
+                },
+                _ => {
+                    current_token.push(ch);
+                }
             }
+        }
+
+        if !current_token.is_empty() {
+            tokenized_data.push(current_token.clone());
         }
 
         tokenized_data
     }
 
-    fn get_data(tokens: &Vec<&str>, n: usize) -> String {
+    /*fn get_data(tokens: &Vec<&str>, n: usize) -> String {
         let mut temporary = String::new();
 
         temporary.push_str(tokens.get(n).unwrap());
@@ -130,7 +194,7 @@ pub mod elite_tokenizer {
         }
 
         temporary
-    }
+    }*/
 
     pub fn replace_for_tokenize(token: &String) -> String {
         let mut token= String::from(token);
@@ -155,8 +219,8 @@ pub mod elite_tokenizer {
         } else { false };
     }
 
-    pub fn is_preprocessor_token(token: &&str, what: &str) -> bool {
-        return if token == &what {
+    pub fn is_preprocessor_token(token: &String, what: &str) -> bool {
+        return if &token == &what {
             true
         } else { false };
     }

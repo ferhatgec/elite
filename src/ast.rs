@@ -373,22 +373,34 @@ pub mod ast_helpers {
                 break;
             }
 
-            return __argument;
+            return __argument
+                .replace("\\n", "\n")
+                .replace("\\t", "\t")
+                .replace("\\r", "\r")
+                .replace("\\w", " ")
+                .replace("\\x1b", "\x1b")
+                .replace("\\033", "\x1b");
         }
         else {
             let mut argument = String::from(argument);
 
-            if argument.chars().nth(0).unwrap() == '"' {
+            if argument.len() < 2 { return argument; }
+
+            if argument.starts_with('"') || argument.starts_with('\'') {
                 argument.remove(0);
             }
-
-            argument = argument.split('\n').collect::<Vec<_>>().get(0).unwrap().to_string();
-
-            if argument.ends_with('"') {
-                argument.remove(argument.len() - 1);
+            
+            if argument.ends_with('"') || argument.ends_with('\'') {
+                argument.pop();
             }
 
             argument
+                .replace("\\n", "\n")
+                .replace("\\t", "\t")
+                .replace("\\r", "\r")
+                .replace("\\w", " ")
+                .replace("\\x1b", "\x1b")
+                .replace("\\033", "\x1b")
         }
     }
 }

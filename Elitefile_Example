@@ -1,0 +1,126 @@
+required_version is 0.1
+
+set ProjectName as "Elite"
+
+set COMPILER    as "gcc"
+set fn          as "for"
+set commandline as "argument"
+set echo        as "println"
+set make_arg    as "make"
+
+set Linux       as "linux"
+set FreeBSD     as "freebsd"
+
+set HOME        as env "HOME"
+
+set COMPILER_PATH as "/usr/bin/{COMPILER}"
+
+set LINKS    as link    "stdc++fs"
+set STANDARD as std     "c++17"
+set OUTPUT   as outfile "example"
+
+set sources as "example.cpp"
+use add_source sources "test.cpp"
+
+# Start signal
+$fn signal "start" [
+    print "CPU Architecture: "
+    for specific "x86"      [ println "x86"       ]
+    for specific "x86_64"   [ println "x86_64"    ]
+    for specific "mips"     [ println "mips"      ]
+    for specific "powerpc"  [ println "powerpc"   ]
+    for specific "powerpc64"[ println "powerpc64" ]
+    for specific "arm"      [ println "arm"       ]
+    for specific "aarch64"  [ println "aarch64"   ]
+
+    use append ProjectName "build"
+
+    $echo "test.cpp file added: {sources}"
+
+    $echo "Hello, {ProjectName}!"
+
+    println "Default compiler is: {COMPILER}"
+
+    println suppress "Suppressed stdout."
+
+    use exec suppress "echo Suppressed syscall"
+
+    set echo as "print"
+
+    $echo "Huh!"
+
+    set echo as "println"
+
+    #  Prints newline
+    $echo
+
+    $echo $HOME
+
+    if eq "{ProjectName}" "Elitebuild" [
+        println "ProjectName checked."
+    ]
+
+    if uneq "{COMPILER}" "gcc" [
+        println "Your compiler seemsly not GCC, unoptimized."
+    ]
+
+    if uneq "{HOME}" env "PWD" [
+        println "Current directory isn't {HOME}!"
+        print   "Current dir is: " println env "PWD"
+    ]
+
+    #  You can also use $ProjectName instead of formatter
+
+    #  Platform-specific functions.
+    $fn specific "{Linux}"   [
+        for exists "{COMPILER_PATH}" [
+            println "Compiler path found: {COMPILER_PATH} {LINKS} {STANDARD} {OUTPUT}"
+        ]
+
+        println "Linux-based"
+    ]
+
+    for $commandline "{make_arg}" [
+        println "There's nothing to do."
+    ]
+
+    for argument "hi" [
+        println "Hi!"
+    ]
+
+    for specific "{FreeBSD}" [
+        println "{FreeBSD}"
+    ]
+
+    # for argument("make") [
+    #     for specific("linux") [
+    #         use commandline(
+    #             $COMPILER,
+    #             $arguments,
+    #             $flags
+    #         )
+
+    #         print "hello, world"
+    # 
+    #         use commandline(
+    #             "echo",
+    #             "hello, world"
+    #         )
+    #     ]
+    # ]
+
+    set gech as "gech"
+    println $gech
+    unset gech
+    print $gech
+
+
+    #  {...} default formatter
+    for specific "{Linux}"   [ use exec   "echo Hello, Elitebuild from syscall! (for Linux-based)" ]
+
+    for specific "{FreeBSD}" [ use exec   "echo Hello, Elitebuild from syscall! (for FreeBSD)" ]
+
+    for specific "{Linux}"   [ use exec   "uname --a" ]
+
+    for specific "linux"     [ use signal "exit" ]
+]

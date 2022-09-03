@@ -87,7 +87,7 @@ impl EliteParser {
             if token.is_empty() { continue; }
 
             let mut token = self.init_ast.to(token.trim());
-
+            
             if is_defined {
                 token = self.token_get(token.to_owned());
 
@@ -193,12 +193,14 @@ impl EliteParser {
 
                         continue;
                     }
-
+                    
                     if crate::tokenizer::elite_tokenizer::is_data(&token.as_str()) {
                         let mut __data   = String::new();
                         let mut __format = String::new();
 
                         let mut is_formatter = false;
+
+                        // token = token.replace(" ", "\\w");
 
                         for character in token.chars() {
                             if is_formatter {
@@ -392,7 +394,7 @@ impl EliteParser {
                         if !is_suppress {
                             if !self.just_ct {
                                 print!("{}",
-                                       ast_helpers::extract_argument(&ast_helpers::extract_argument(&token)));
+                                       &ast_helpers::extract_argument(&token));
                             }
                         }
 
@@ -681,11 +683,21 @@ impl EliteParser {
 
                 if argument.contains(' ') {
                     let mut arguments: Vec<&str> = argument.split(' ').collect();
+                    let mut clean_args: Vec<&str> = vec![];
 
                     arguments.remove(0);
 
+                    for &mut arg in arguments.iter_mut() {
+                        let arg = arg.trim();
+                        
+                        if !arg.is_empty() {
+                            clean_args.push(arg);
+                        }    
+                    }
+
                     let mut syscall = std::process::Command::new(command.clone());
-                    syscall.args(arguments);
+
+                    syscall.args(clean_args);
 
                     if !suppress {
                         if !self.just_ct {
@@ -740,7 +752,10 @@ impl EliteParser {
         // Check is variable exists.
         for (_index, variable_list) in self.data_tree.variable_list.iter().enumerate() {
             if variable_list.__name == variable {
-                self.data_tree.variable_list[_index].__data = data.clone();
+                self.data_tree.variable_list[_index].__data = data.clone()
+                                                                .replace("\n", "")
+                                                                .replace("\t", "")
+                                                                .replace("\\w", " ");
 
                 self.ast_nodes.insert_key(EliteDataInfos {
                     __type: EliteKeywords::Change,
@@ -757,6 +772,7 @@ impl EliteParser {
                     __type: EliteKeywords::Set,
                     __name: variable.clone(),
                     __data: data.clone()
+                                .replace("\\w", " ")
                 }
         );
 
