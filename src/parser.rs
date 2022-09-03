@@ -752,10 +752,7 @@ impl EliteParser {
         // Check is variable exists.
         for (_index, variable_list) in self.data_tree.variable_list.iter().enumerate() {
             if variable_list.__name == variable {
-                self.data_tree.variable_list[_index].__data = data.clone()
-                                                                .replace("\n", "")
-                                                                .replace("\t", "")
-                                                                .replace("\\w", " ");
+                self.data_tree.variable_list[_index].__data = data.clone();
 
                 self.ast_nodes.insert_key(EliteDataInfos {
                     __type: EliteKeywords::Change,
@@ -772,7 +769,6 @@ impl EliteParser {
                     __type: EliteKeywords::Set,
                     __name: variable.clone(),
                     __data: data.clone()
-                                .replace("\\w", " ")
                 }
         );
 
