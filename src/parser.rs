@@ -153,7 +153,7 @@ impl EliteParser {
                         __data: Default::default()
                     }, Branch::Data);
 
-                    if is_main_os  {
+                    if !is_main_os  {
                         count_end_of_function += 1;
                     }
 
@@ -166,21 +166,18 @@ impl EliteParser {
                         __data: Default::default()
                     }, Branch::Data);
 
-                    if count_end_of_function == 0 {
-                        elite_logger::log(EliteLogType::Warning,
-                                          "right-sq-bracket",
-                                          "unmatched bracket");
-                    }
+                    //if count_end_of_function == 0 {
+                    //    elite_logger::log(EliteLogType::Warning,
+                    //                      "right-sq-bracket",
+                    //                      "unmatched bracket");
+                    //}
 
-                    if is_main_os {
+                    if !is_main_os {
                         count_end_of_function -= 1;
                     }
-                    else {
-                        is_main_os = true;
-                    }
 
                     if count_end_of_function == 0 {
-                        is_main_os       = false;
+                        is_main_os       = true;
                     }
                 },
                 _ => {
