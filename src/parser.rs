@@ -87,7 +87,7 @@ impl EliteParser {
             if token.is_empty() { continue; }
 
             let mut token = self.init_ast.to(token.trim());
-            
+
             if is_defined {
                 token = self.token_get(token.to_owned());
 
@@ -166,18 +166,18 @@ impl EliteParser {
                         __data: Default::default()
                     }, Branch::Data);
 
-                    //if count_end_of_function == 0 {
-                    //    elite_logger::log(EliteLogType::Warning,
-                    //                      "right-sq-bracket",
-                    //                      "unmatched bracket");
-                    //}
+                    if !is_main_os && count_end_of_function == 0 {
+                        elite_logger::log(EliteLogType::Error,
+                                          "right-sq-bracket",
+                                          "unmatched bracket");
+                    }
 
                     if !is_main_os {
                         count_end_of_function -= 1;
                     }
 
                     if count_end_of_function == 0 {
-                        is_main_os       = true;
+                        is_main_os = true;
                     }
                 },
                 _ => {
@@ -187,10 +187,11 @@ impl EliteParser {
                         is_unset_variable = false;
                         is_use            = false;
                         is_use_argument   = false;
-
+                        is_if             = false;
+                        is_if_function    = false;
                         continue;
                     }
-                    
+
                     if crate::tokenizer::elite_tokenizer::is_data(&token.as_str()) {
                         let mut __data   = String::new();
                         let mut __format = String::new();
@@ -289,7 +290,7 @@ impl EliteParser {
                         }
                         else {
                             elite_logger::log(EliteLogType::Error,
-                                        &token, "syntax error, undefined if function");
+                                              &token, "syntax error, undefined if function");
                         }
 
                         continue;
@@ -487,8 +488,8 @@ impl EliteParser {
                                                       "required_version must be used with \
                                                       float literal, \
                                                       not string. \
-                                                      use {} instead of \"{data}\"",
-                                                            data = ast_helpers::extract_argument(&token)));
+                                                      use {data} instead of \"{data}\"",
+                                                        data = ast_helpers::extract_argument(&token)));
                             }
 
                             is_required_version             = false;
@@ -686,10 +687,10 @@ impl EliteParser {
 
                     for &mut arg in arguments.iter_mut() {
                         let arg = arg.trim();
-                        
+
                         if !arg.is_empty() {
                             clean_args.push(arg);
-                        }    
+                        }
                     }
 
                     let mut syscall = std::process::Command::new(command.clone());
@@ -762,11 +763,11 @@ impl EliteParser {
         }
 
         self.data_tree.variable_list.push(
-                EliteDataInfos {
-                    __type: EliteKeywords::Set,
-                    __name: variable.clone(),
-                    __data: data.clone()
-                }
+            EliteDataInfos {
+                __type: EliteKeywords::Set,
+                __name: variable.clone(),
+                __data: data.clone()
+            }
         );
 
         self.ast_nodes.insert_key(EliteDataInfos {
